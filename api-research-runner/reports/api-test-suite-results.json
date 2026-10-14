@@ -1,0 +1,43 @@
+{
+  "suiteName" : "City Tour Planner API Research",
+  "runAt" : "2026-10-14T13:11:32.610878+03:00",
+  "summary" : {
+    "totalTests" : 3,
+    "passed" : 3,
+    "failed" : 0
+  },
+  "results" : [ {
+    "source" : "fmi/helsinki-forecast",
+    "endpoint" : "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::forecast::harmonie::surface::point::multipointcoverage&place=helsinki",
+    "successful" : true,
+    "statusCode" : 200,
+    "contentType" : "text/xml; charset=UTF-8",
+    "responseTime" : "PT0.101094S",
+    "usefulFields" : [ ],
+    "responsePreview" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wfs:FeatureCollection\n    timeStamp=\"2026-10-14T09:58:35Z\"\n    numberMatched=\"1\"\n    numberReturned=\"1\"\n    xmlns:wfs=\"http://www.opengis.net/wfs/2.0\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n    xmlns:om=\"http://www.opengis.net/om/2.0\"\n    xmlns:omso=\"http://inspire.ec.europa.eu/schemas/omso/3.0\"\n    xmlns:ompr=\"http://inspire.ec.europa.eu/schemas/ompr/3.0\"\n    xmlns:gml=\"http://www.opengis.n",
+    "error" : null,
+    "testedAt" : "2026-10-14T10:11:30.349760Z"
+  }, {
+    "source" : "digitraffic/traffic-announcements",
+    "endpoint" : "https://tie.digitraffic.fi/api/traffic-message/v2/traffic-announcements",
+    "successful" : true,
+    "statusCode" : 200,
+    "contentType" : "application/json;charset=UTF-8",
+    "responseTime" : "PT0.116463S",
+    "usefulFields" : [ ],
+    "responsePreview" : "{\n  \"type\" : \"FeatureCollection\",\n  \"dataUpdatedTime\" : \"2026-10-14T10:06:21.017Z\",\n  \"features\" : [ {\n    \"type\" : \"Feature\",\n    \"geometry\" : {\n      \"type\" : \"MultiLineString\",\n      \"coordinates\" : [ [ [ 24.453737, 60.273877 ], [ 24.453098, 60.274247 ], [ 24.452578, 60.274569 ], [ 24.452562, 60.274580 ], [ 24.451908, 60.275031 ], [ 24.451902, 60.275035 ], [ 24.451505, 60.275335 ], [ 24.451325, 60.275490 ], [ 24.451316, 60.275498 ], [ 24.451277, 60.275535 ], [ 24.450840, 60.275941 ], [ 24.450",
+    "error" : null,
+    "testedAt" : "2026-10-14T10:11:30.450926Z"
+  }, {
+    "source" : "places/service-locations",
+    "endpoint" : "https://www.hel.fi/palvelukarttaws/rest/v4/unit/",
+    "successful" : true,
+    "statusCode" : 200,
+    "contentType" : "application/json;charset=UTF8",
+    "responseTime" : "PT2.042706S",
+    "usefulFields" : [ ],
+    "responsePreview" : "[{\"id\":2,\"org_id\":\"83e74666-0836-4c1d-948a-4b34a8b90301\",\"dept_id\":\"55bdee79-0e07-48c4-aaf0-ad1b3a12d2bc\",\"provider_type\":\"SELF_PRODUCED\",\"data_source_url\":\"www.hel.fi\",\"name_fi\":\"Päiväkoti Kannelmäki\",\"name_sv\":\"Päiväkoti Kannelmäki\",\"name_en\":\"Daycare Kannelmäki\",\"ontologyword_ids\":[663],\"ontologytree_ids\":[870,871],\"desc_fi\":\"Päiväkoti Kannelmäki on peruskorjauksen vuoksi toistaiseksi suljettu.\\n\\nPäiväkodin johtaja: Annina Peltonen p.0931041608 annina.peltonen@hel.fi\\nVarajohtaja:    Salla-M",
+    "error" : null,
+    "testedAt" : "2026-10-14T10:11:30.567405Z"
+  } ]
+}

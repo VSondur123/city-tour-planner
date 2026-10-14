@@ -1,0 +1,52 @@
+
+spring:
+  application:
+    name: api-research-runner
+
+  main:
+    web-application-type: none
+    banner-mode: off
+
+research:
+  http:
+    connect-timeout-seconds: 10
+    request-timeout-seconds: 20
+
+  report:
+    output-directory: reports
+    response-preview-max-length: 500
+
+  sources:
+    fmi:
+      enabled: true
+      base-url: https://opendata.fmi.fi
+      endpoints:
+        helsinki-forecast:
+          path: /wfs
+          method: GET
+          parameters:
+            service: WFS
+            version: "2.0.0"
+            request: getFeature
+            storedquery_id: "fmi::forecast::harmonie::surface::point::multipointcoverage"
+            place: helsinki
+
+    digitraffic:
+      enabled: true
+      base-url: https://tie.digitraffic.fi
+      endpoints:
+        traffic-announcements:
+          path: /api/traffic-message/v2/traffic-announcements
+          method: GET
+          parameters: {}
+
+
+    places:
+      enabled: true
+      base-url: https://www.hel.fi/palvelukarttaws/rest/v4
+      endpoints:
+        service-locations:
+          path: /unit/
+          method: GET
+          parameters: { }
+
