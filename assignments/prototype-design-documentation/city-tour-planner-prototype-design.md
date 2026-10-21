@@ -258,19 +258,15 @@ We have four members in our group and have provisionally divided the work by are
 | **Abdullah** | Testing and integration support | Will help test API and application behavior, check city-specific data integration, test unavailable-data scenarios, and coordinate technical documentation and integration checks. |
 
 This is our working allocation for the project. We will coordinate shared tasks and adjust responsibilities when needed. We intend for all members to review the overall design and understand how their components integrate with the rest of the application.
+___
+8. AI Tool Usage Disclosure
 
----
+We used AI tools as part of our project preparation and development workflow, including exploring design options, supporting spec-driven development, reviewing and optimizing code, and considering architectural and implementation decisions. Our use of these tools supported the development process rather than replacing our own technical judgment.
 
-## 8. AI Tool Usage Disclosure
+We treat AI-generated suggestions as input rather than automatically accepting them. We review relevant outputs, consider design trade-offs, and check technical claims against API responses, available documentation, and implementation tests where applicable. We remain responsible for our final requirements, design decisions, code, and submitted work.
 
-We have used AI tools as part of our project preparation and development workflow. Varun used ChatGPT and Claude to explore design options, support spec-driven development, review and optimize code, and consider architectural and implementation decisions.
-
-We treat AI-generated suggestions as input rather than automatically accepting them. We review relevant outputs, consider trade-offs, and check technical claims against API responses, available documentation, and implementation tests where applicable. We remain responsible for our final requirements, design decisions, code, and submitted work.
-
-This disclosure describes the AI use identified so far. We will ensure the final submission accurately reflects any additional AI use by other members, including code generation or design assistance where applicable.
-
----
-
+This disclosure describes our collective workflow. Any tool-specific attribution or additional AI use should be documented accurately based on the work actually performed by the team.
+___
 ## 9. Implementation Considerations
 
 Our initial research and design have highlighted several considerations that shape how we will implement the application:
