@@ -135,8 +135,11 @@ The following technologies are planned or currently used in the research utility
 | Traffic source | Digitraffic | Road traffic announcements |
 | Place source | Service Map for covered municipalities; additional provider(s) if needed | Candidate service-location data for multiple supported cities |
 | Map visualization | Leaflet with OpenStreetMap tiles (proposed) | Display place markers and the suggested stop sequence |
-| Frontend | To be confirmed by the group | Planning form and results UI |
-| Chart visualization | To be confirmed by the group | Display forecast data |
+| Frontend | React with Vite | Planning form and results UI; language (JavaScript or TypeScript) |
+| Chart visualization | Recharts or Chart.js | Display hourly temperature and precipitation |
+| Frontend package management | npm (Node.js) | Install and build frontend dependencies |
+| Frontend-backend communication | Browser fetch API, JSON over REST | Frontend sends tour requests to the Java backend |
+| UI design and prototype | Figma | Static UI frames linked with prototype transitions (Option 1) |
 
 The separate API Research Runner already uses Java, Spring Boot, Maven, Java HTTP Client, Jackson, and YAML configuration. It is a development and feasibility-testing utility, not a production component of the planned application.
 
@@ -363,7 +366,7 @@ Complete the following table with the group's agreed responsibilities before sub
 | Group member | Prototype and initial-design contribution | Planned component / responsibility |
 |---|---|---|
 | Varun Ganesh | API Research Runner and API feasibility testing; contribution to project planning and architecture | API research and integration design; confirm final implementation responsibilities |
-| [Member 2] | [Add actual contribution] | [Specify component or subsystem] |
+| Pham Thanh | Designed the UI prototype in Figma (Option 1); defined screen content from the API findings; wrote the UI prototype section of this document | Frontend: planning form, map view (Leaflet), forecast chart, data-layer toggles, and calling the backend REST API |
 | [Member 3] | [Add actual contribution] | [Specify component or subsystem] |
 | [Member 4, if applicable] | [Add actual contribution] | [Specify component or subsystem] |
 
