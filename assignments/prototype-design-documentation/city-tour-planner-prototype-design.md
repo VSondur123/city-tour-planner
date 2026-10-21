@@ -1,417 +1,308 @@
 # City Tour Planner
-## Prototype and Initial Design Document
+## Prototype and Initial Design
 
 **Course:** COMP.SE.110 Software Design, 2026–2027  
-**Submission:** Prototype submission  
 **Project:** City Tour Planner  
-**Document status:** Initial design; some decisions remain provisional
+**Submission:** Prototype and initial design
 
 ---
 
 ## 1. Project Overview
 
-City Tour Planner is a proposed application that helps users plan a visit to a city. A user provides preferences such as the city, date, start time, tour duration, place categories, and preferred activity setting. The application combines information from external data sources and applies its own planning logic to produce a suggested sequence of places.
+We are developing City Tour Planner to help users plan city visits around their available time, preferences, and weather conditions. Users select a city, date, start time, and tour duration. Our application combines information from external data sources and uses its own planning logic to suggest an ordered set of places to visit.
 
-The planned result view includes an itinerary, map markers for selected places, and weather information. Traffic-related information may also be shown when it is relevant to the selected area and available from the chosen data source.
-
-The application is intended to support multiple cities. Helsinki is the initial test city used to investigate API responses; it is not the intended limit of the product. The purpose of the project is to demonstrate how data from independent APIs can be integrated into one application and used to provide a useful, adjustable result across supported cities.
+Our intended results include a map, an ordered list of stops, weather information, and relevant traffic announcements when available. We designed the application to support multiple cities rather than limiting it to one location. We initially used Helsinki to investigate candidate APIs and understand the available data. Our map and city-selection design allows us to extend the application to other cities using suitable data providers.
 
 ### 1.1 Main user workflow
 
 1. The user selects a city, date, start time, and tour duration.
-2. The user selects preferred place categories and a weather preference, such as Auto, Indoor, or Outdoor.
-3. The backend retrieves relevant information from configured external data sources.
-4. The application normalizes the retrieved data and applies its own filtering and tour-selection logic.
-5. The application returns a suggested itinerary for display.
-6. The user reviews the stops, map, weather visualization, and available traffic information.
+2. Our application retrieves relevant weather, place, and traffic information.
+3. We process the available data and apply our tour-planning rules.
+4. Our planning logic selects and orders suitable places within the requested duration.
+5. We display the suggested itinerary, map, weather visualization, and available traffic information.
+6. The user can show or hide relevant data layers in the results view.
 
 ### 1.2 Scope
 
-**Planned for the initial application**
+We intend the initial version to support:
 
-- Letting the user choose from multiple supported cities.
-- Collecting tour preferences from the user.
-- Retrieving weather, place, and traffic-related information for the selected city from external sources.
-- Filtering candidate places according to the user's preferences.
-- Applying application-side rules to select and order stops.
-- Displaying the proposed itinerary and its places on a map.
-- Visualizing relevant forecast information.
-- Displaying relevant traffic announcements when available.
+- Tour planning for multiple cities using appropriate data providers.
+- Planning based on the selected date, start time, and duration.
+- Filtering and ordering places using application-side logic.
+- Weather-aware recommendations when suitable forecast data is available.
+- A map and an ordered list of suggested stops.
+- Weather visualization and optional traffic information.
+- Clear feedback when an external data source is unavailable.
 
-**Outside the initial scope**
-
-- Booking places, transport, or activities.
-- Payments or user accounts.
-- Full turn-by-turn navigation.
-- Live GPS tracking.
-- Guaranteed optimal routes or exact travel times without a suitable routing source.
-- Train departure and delay information unless a suitable data source is separately selected and tested.
-
-The initial implementation should not claim information that the selected data sources do not provide. Features may be revised as the group validates the APIs and refines the design.
+Booking, payments, user accounts, live GPS tracking, and guaranteed optimal pedestrian routing are outside our initial scope. We will only present walking times, train information, and precipitation probabilities as factual results when they are supported by suitable data sources. Where we use estimates, we will distinguish them from verified measurements.
 
 ---
 
-## 2. Data Sources and API Feasibility
+## 2. Data Sources and API Research
 
-The group has developed a separate API Research Runner to test candidate endpoints. The runner sends requests to configured endpoints and records status codes, response times, content types, response previews, and errors in a JSON report.
+Before designing our integrations, we built a separate **API Research Runner** to test candidate endpoints. It records HTTP status codes, response times, content types, response previews, and errors in a JSON report. This helped us understand how the candidate services respond before integrating them into our application.
 
-The current research configuration has returned HTTP 200 responses from the following three endpoints. This establishes basic endpoint accessibility during testing; it does not by itself confirm that every field required by the UI is available or that the data is suitable for every city and date.
+The endpoints we tested returned HTTP 200 during our initial research. This confirms that the requests succeeded at the HTTP level, but we distinguish that result from confirming the availability of every field needed by our planning logic.
 
-### 2.1 Finnish Meteorological Institute (FMI)
+### 2.1 Weather — Finnish Meteorological Institute (FMI)
 
-**Purpose:** Provide weather forecast data for the selected location and time.
+**Purpose:** Provide forecast information for the selected city and time.
 
-**Planned use:**
+We investigated FMI Open Data as our weather source. Our tested endpoint returned an XML response. We plan to use the available forecast measurements and timestamps in the weather visualization and, where the data supports it, in our weather-aware place selection.
 
-- Retrieve forecast values for the requested location and time period.
-- Extract the forecast measurements and timestamps available from the selected FMI query.
-- Use supported values in the weather visualization.
-- Use available weather information as one input to the tour-selection rules.
+We will interpret each measurement according to its actual unit and time coverage. We will not assume that precipitation probability or another specific forecast field is available unless it is present in the data we retrieve.
 
-**Feasibility and limitations:** The configured forecast endpoint has returned HTTP 200 with an XML response. The exact fields, units, temporal coverage, and availability of precipitation probability must be verified against the chosen forecast query before those values are shown in the UI.
+### 2.2 Traffic — Digitraffic
 
-### 2.2 Digitraffic
+**Purpose:** Provide road traffic announcements relevant to the selected area.
 
-**Purpose:** Provide road traffic announcements and related traffic information.
+We tested the Digitraffic traffic-announcements endpoint, which returned JSON. We intend to use relevant announcements as additional context for the planned tour.
 
-**Planned use:**
+The endpoint we tested provides road traffic announcements; it does not establish the availability of train departure times or delays. We therefore treat rail information as outside the current integration unless we introduce and test a suitable additional source.
 
-- Retrieve traffic announcements.
-- Inspect the available fields and location information.
-- Filter and display announcements relevant to the selected area when the response supports that operation.
+### 2.3 Places — Service Map and city-specific providers
 
-**Feasibility and limitations:** The configured traffic-announcements endpoint has returned HTTP 200 with a JSON response. This endpoint does not establish that train departure times or delays are available. Those features would require a separately identified and tested source.
+**Purpose:** Supply place and service records that we can filter into potential tour stops.
 
-### 2.3 Service Map place data
+We tested the Helsinki Service Map `/unit/` endpoint, which returned JSON. The service includes general city services, so we need to filter its records by relevant categories and fields rather than treating every returned unit as a tourist attraction.
 
-**Purpose:** Provide service and location records that may be used to identify candidate places in supported cities.
+During our design discussions, we considered how the map and city-selection functionality could support locations beyond Helsinki. We have therefore designed the application around a selected city and a provider integration layer rather than hardcoding Helsinki into the planning logic. We will use suitable place-data providers according to the selected city's coverage, allowing us to extend the application to other cities without redesigning the entire workflow.
 
-**Planned use:**
-
-- Retrieve service-location records.
-- Inspect names, coordinates, categories, and other available fields.
-- Filter records to identify places relevant to the user's selected categories.
-- Use coordinates to place selected locations on a map.
-
-**Feasibility and limitations:** The configured `/unit/` endpoint has returned HTTP 200 with JSON records. The response includes general city services, so not every returned unit should be treated as a tourist attraction. The group must verify available categories and filter the data appropriately.
-
-The Service Map dataset covers Helsinki and other municipalities in the Helsinki metropolitan area, including Espoo, Vantaa, and Kauniainen; its documented coverage should be checked before enabling a city in the application. The group tested Helsinki first to understand the response, not because the product should be restricted to Helsinki.
-
-For cities outside the Service Map coverage, the application will need another suitable places dataset or provider. The endpoint supports municipality/area filtering, so the selected city must be used when retrieving place records.
+The Service Map is useful for Helsinki and other municipalities in the Helsinki metropolitan area. For cities outside its coverage, our design allows us to integrate alternative providers that supply relevant place data.
 
 References:
-- [Official Service Map API documentation](https://www.hel.fi/palvelukarttaws/restpages/ver4.html)
-- [Service Map dataset coverage description](https://avoindata.suomi.fi/data/en_GB/dataset/paakaupunkiseudun-palvelukartan-rest-rajapinta)
 
-### 2.4 Data combination
+- [Helsinki Service Map API documentation](https://www.hel.fi/palvelukarttaws/restpages/ver4.html)
+- [Service Map dataset information](https://avoindata.suomi.fi/data/en_GB/dataset/paakaupunkiseudun-palvelukartan-rest-rajapinta)
 
-The APIs supply data; the application's own logic combines and interprets it. The planned process is:
+### 2.4 How we combine the data
 
-1. Resolve the selected city and its supported data coverage.
-2. Retrieve the forecast, place records, and relevant traffic announcements for that city.
-3. Convert provider-specific responses into application-level data models.
-4. Filter places using available categories and the user's preferences.
-5. Apply weather-based suitability rules when the necessary data is available.
-6. Select and order candidate stops within the requested tour duration.
-7. Return the itinerary and visualization data to the frontend.
+The external APIs supply raw information; our application turns that information into a proposed itinerary.
 
-The first version may use estimated visit durations and a simple stop-ordering heuristic. Coordinates alone do not provide an actual pedestrian route or reliable walking duration. Any route line drawn between stops must therefore be presented as a suggested visit sequence unless routing data is added.
+Our intended process is to identify the selected city's available data sources, retrieve the relevant weather, place, and traffic information, normalize provider-specific responses into application-level models, filter places according to our planning rules, and select and order stops within the requested duration.
+
+We keep provider-specific processing separate from our planning logic so that different data sources can be integrated without rewriting the entire application. We also distinguish real provider data from estimates and handle missing information explicitly instead of inventing values.
 
 ---
 
 ## 3. Planned Technologies
 
-The following technologies are planned or currently used in the research utility. Choices that are not yet finalized are explicitly marked as provisional.
-
-| Area | Planned technology | Purpose / status |
+| Area | Technology | Intended use |
 |---|---|---|
-| Backend language | Java 22 | Application and tour-planning logic |
-| Backend framework | Spring Boot 3.5.6 | Backend application structure and dependency management |
-| Build tool | Maven | Build and run the Java project |
-| HTTP communication | Java HTTP Client / suitable Spring HTTP support | Requests to external APIs; final production choice to be confirmed |
-| Configuration | YAML with Spring Boot configuration properties | Configure API endpoints and settings |
-| JSON processing | Jackson | Parse and serialize JSON data |
-| Weather source | FMI Open Data | Forecast data |
-| Traffic source | Digitraffic | Road traffic announcements |
-| Place source | Service Map for covered municipalities; additional provider(s) if needed | Candidate service-location data for multiple supported cities |
-| Map visualization | Leaflet with OpenStreetMap tiles (proposed) | Display place markers and the suggested stop sequence |
-| Frontend | React with Vite | Planning form and results UI; language (JavaScript or TypeScript) |
-| Chart visualization | Recharts or Chart.js | Display hourly temperature and precipitation |
-| Frontend package management | npm (Node.js) | Install and build frontend dependencies |
-| Frontend-backend communication | Browser fetch API, JSON over REST | Frontend sends tour requests to the Java backend |
-| UI design and prototype | Figma | Static UI frames linked with prototype transitions (Option 1) |
+| Backend | Java 22, Spring Boot 3.5.6 | Application workflow and tour-planning logic |
+| Build | Maven | Java dependency management and builds |
+| API communication | Java HTTP Client or suitable Spring HTTP support | External API requests |
+| Configuration and data | YAML, Jackson | Configuration and JSON processing |
+| Weather | FMI Open Data | Forecast information |
+| Traffic | Digitraffic | Road traffic announcements |
+| Places | Helsinki Service Map and additional providers | Place data for supported cities |
+| Frontend | React with Vite | Planning form and results interface |
+| Map | Leaflet with OpenStreetMap tiles (proposed) | Display places and the suggested stop sequence |
+| Charts | Recharts or Chart.js | Weather visualization |
+| Frontend integration | REST API with JSON and browser `fetch` | Communication with the Java backend |
+| UI prototype | Figma | Screen designs and prototype interactions |
 
-The separate API Research Runner already uses Java, Spring Boot, Maven, Java HTTP Client, Jackson, and YAML configuration. It is a development and feasibility-testing utility, not a production component of the planned application.
+We have established the main technology direction while leaving a few implementation-level choices flexible. We will select the final HTTP integration and charting libraries according to the needs of the implementation.
 
-### 3.1 AI tool usage
-
-AI assistance has been used during planning and documentation, including discussing the scope, organizing the design document, and refining explanations. Any AI-generated suggestions are reviewed by the group. API behavior and implementation decisions are checked against actual responses, documentation, and group testing.
-
-The group should update this section before submission to accurately list the AI tools used by all members and any additional uses, including code generation or prototype work.
+Our API Research Runner is a separate development utility. It helps us investigate external services and is not itself a production component of City Tour Planner.
 
 ---
 
 ## 4. Initial Software Architecture
 
-The proposed architecture separates the user interface, application workflow, tour-planning logic, and external API integration. This is an initial design and may be revised as the prototype and implementation progress.
+We separate the frontend, application workflow, tour-planning logic, and external API integrations. This keeps the planning logic independent of the response formats used by individual providers and makes it easier for us to add data sources as we extend city support.
 
 ### 4.1 Main components
 
-**Presentation layer**
+**Frontend**
 
-- Collects the user's city, date, start time, duration, categories, and weather preference.
-- Displays the generated itinerary, place details, map markers, and forecast visualization.
-- Displays traffic information when available.
+Our React frontend collects the user's city, date, start time, and tour duration. It displays the loading state, itinerary, map, weather chart, and traffic information when available. The results view includes controls for showing and hiding data layers.
 
 **Application layer**
 
-- Receives the user's tour request.
-- Validates inputs and coordinates the planning workflow.
-- Requests the necessary data from the integration layer.
-- Passes normalized data to the planning logic and returns the result to the frontend.
+Our application layer receives and validates tour requests, coordinates data retrieval and planning, and returns the generated result to the frontend.
 
-**Tour-planning domain logic**
+**Tour-planning logic**
 
-- Filters candidate places using the user's selected categories.
-- Applies the selected weather preference using the available forecast and place classifications.
-- Selects and orders places within the requested duration.
-- Produces an itinerary with estimated visit times where appropriate.
+Our planning logic filters places using the available data and user selections, applies weather-aware rules where supported, and selects and orders stops within the requested duration.
 
 **API integration layer**
 
-- Provides application-owned interfaces for retrieving weather, places, and traffic information.
-- Contains provider-specific adapters that call the external APIs.
-- Transforms provider-specific responses into application-level models.
-- Handles request failures and missing or unusable data.
+We use provider interfaces and adapters to isolate external API requests and convert provider-specific responses into application-level models.
 
-**External data sources**
+**External providers**
+
+Our initial integrations focus on:
 
 - FMI for weather forecasts.
-- Service Map place data for supported municipalities; additional place providers may be added for cities outside its coverage.
+- Helsinki Service Map and additional providers for place data.
 - Digitraffic for road traffic announcements.
 
-### 4.2 Architecture diagram
-
-The following diagram shows the intended component relationships.
+### 4.2 Component interaction
 
 ```mermaid
 flowchart TB
-    UI[Frontend: Planning Form and Results]
-    APP[Application Layer: Tour Request and Validation]
+    UI[React Frontend]
+    APP[Application Layer]
     PLAN[Tour Planning Logic]
-    PORTS[Provider Interfaces]
-    FMI[FMI Adapter]
+    PROVIDERS[Provider Interfaces]
+    WEATHER[FMI Adapter]
     PLACES[City Places Adapter]
     TRAFFIC[Digitraffic Adapter]
     FMIAPI[FMI API]
-    PLACESAPI[Selected Places API]
+    PLACEAPI[Selected Places API]
     TRAFFICAPI[Digitraffic API]
 
     UI <--> APP
     APP --> PLAN
-    PLAN --> PORTS
-    PORTS --> FMI
-    PORTS --> PLACES
-    PORTS --> TRAFFIC
-    FMI <--> FMIAPI
-    PLACES <--> PLACESAPI
+    PLAN --> PROVIDERS
+    PROVIDERS --> WEATHER
+    PROVIDERS --> PLACES
+    PROVIDERS --> TRAFFIC
+    WEATHER <--> FMIAPI
+    PLACES <--> PLACEAPI
     TRAFFIC <--> TRAFFICAPI
 ```
 
-The diagram is conceptual. Provider interfaces and adapters are proposed design elements for the production application; they should not be confused with the separate API Research Runner.
+The diagram shows our proposed component structure. It describes the architecture we intend to implement, not a claim that every component is already complete.
 
-### 4.3 Example interaction flow
+### 4.3 Request flow
 
-When a user requests a tour:
+1. The user submits a tour request through our frontend.
+2. The backend validates the request and identifies the data providers suitable for the selected city.
+3. Our integration layer retrieves the relevant weather, place, and traffic data.
+4. Provider adapters normalize the responses into application-level models.
+5. Our planning logic filters and orders candidate places.
+6. The backend returns the itinerary and visualization data.
+7. The frontend displays the results and any relevant data-availability messages.
 
-1. The frontend sends the selected preferences to the backend.
-2. The application layer validates the request.
-3. The integration layer requests the necessary forecast, place, and traffic data.
-4. Each adapter transforms its provider response into application-level data.
-5. The planning logic filters candidate places and applies the selected rules.
-6. The application returns the itinerary and visualization data.
-7. The frontend displays the stops, map, forecast, and any relevant traffic information.
-
-External requests may fail or return incomplete data. The application should handle such cases explicitly and avoid displaying fabricated values. Whether to return a partial itinerary or report that a tour cannot be generated depends on which data is missing.
+We designed the workflow to tolerate partial data availability. If one provider fails, our application can explain the limitation and use other suitable data where possible instead of silently treating missing information as valid.
 
 ---
 
-## 5. Design Approach and Patterns
-
-The design aims to keep provider-specific integration separate from the core planning logic. This should make the application easier to understand, test, and extend if an API or planning rule changes.
+## 5. Design Approach
 
 ### 5.1 Adapter pattern
 
-**Problem:** External APIs use different endpoints, response formats, and field names. Directly using those formats throughout the application would couple the planning logic to individual providers.
+We chose the Adapter pattern as a suitable approach for integrating external providers with different endpoints and response formats.
 
-**Planned approach:** Create provider-specific adapters, for example:
+For example, we can use `FmiWeatherAdapter`, `ServiceMapPlacesAdapter`, other city-specific place adapters, and `DigitrafficAdapter`. Each adapter converts the corresponding external response into our application's data models.
 
-- `FmiWeatherAdapter`
-- `ServiceMapPlacesAdapter` (for municipalities covered by the Service Map)
-- Additional place adapters if more cities require different providers
-- `DigitrafficAdapter`
-
-Each adapter implements an application-owned interface and converts the provider's response into the relevant application-level model.
-
-**Benefit:** The planning logic can use consistent application data without depending on the structure of an external API. A provider can potentially be replaced without rewriting the whole planning workflow.
+This keeps provider-specific details out of the tour-planning logic. It also supports our multi-city design because we can add or replace a place provider without rewriting the whole planning workflow.
 
 ### 5.2 Strategy pattern
 
-**Problem:** The application may need different place-selection rules depending on user preferences, such as an indoor-focused or outdoor-focused tour.
+We may need different selection rules for general, indoor-focused, and outdoor-focused tours. We can represent these rules through a common strategy interface if they become sufficiently different.
 
-**Planned approach:** If the rules become sufficiently different, define a common tour-selection strategy interface and separate implementations for alternative selection approaches. The planning service selects the appropriate strategy based on the user's request.
-
-**Benefit:** Selection rules can be changed or extended without placing every rule in one large conditional block.
-
-This pattern is proposed rather than finalized. A simpler conditional implementation may be sufficient for the initial prototype.
-
-### 5.3 Design-pattern diagram
-
-This diagram illustrates how the proposed Adapter and Strategy patterns could fit into the design.
-
-```mermaid
-classDiagram
-    class TourPlanningService {
-        +generateTour(request)
-    }
-
-    class TourSelectionStrategy {
-        <<interface>>
-        +selectPlaces(places, forecast, request)
-    }
-
-    class GeneralSelectionStrategy
-    class IndoorSelectionStrategy
-    class OutdoorSelectionStrategy
-
-    class WeatherProvider {
-        <<interface>>
-        +getForecast(location, timeRange)
-    }
-
-    class PlaceProvider {
-        <<interface>>
-        +getPlaces(location, categories)
-    }
-
-    class TrafficProvider {
-        <<interface>>
-        +getAnnouncements(location)
-    }
-
-    class FmiWeatherAdapter
-    class ServiceMapPlacesAdapter
-    class DigitrafficAdapter
-
-    TourPlanningService --> TourSelectionStrategy : uses
-    TourSelectionStrategy <|.. GeneralSelectionStrategy
-    TourSelectionStrategy <|.. IndoorSelectionStrategy
-    TourSelectionStrategy <|.. OutdoorSelectionStrategy
-
-    WeatherProvider <|.. FmiWeatherAdapter
-    PlaceProvider <|.. ServiceMapPlacesAdapter
-    TrafficProvider <|.. DigitrafficAdapter
-
-    TourPlanningService --> WeatherProvider : requests data
-    TourPlanningService --> PlaceProvider : requests data
-    TourPlanningService --> TrafficProvider : requests data
-```
-
-The diagram is a conceptual design, not a claim that these classes have already been implemented. The final design may simplify or rename these interfaces and classes.
+For the initial version, we intend to keep the planning logic proportionate to the requirements. We will introduce separate strategy implementations where they improve the design rather than adding abstractions that do not provide a clear benefit.
 
 ---
 
 ## 6. UI Prototype
 
-The prototype illustrates the intended user workflow through two screens.
+Our Figma prototype demonstrates the intended user journey from entering tour preferences to reviewing the suggested itinerary.
+
+**Prototype:** [City Tour Planner — Figma](https://www.figma.com/proto/xLJSzzdVMFzEHprbCb2SrW/City-Tour-Planner-Prototype?node-id=0-1&t=c8UDhzHjZfPHAGFD-1)
 
 ### 6.1 Planning screen
 
-**Image location:** `docs/images/input-screen.png`
+Our planning screen provides a city selector, date, start time, tour-duration options, and a Generate Tour action. It introduces the main features: weather information, traffic information, places, and the proposed itinerary.
 
-The planning screen allows the user to select:
+The selected city determines which data providers our backend uses. This supports our decision to design City Tour Planner for multiple cities rather than building the workflow around Helsinki alone.
 
-- City.
-- Date and start time.
-- Tour duration.
-- Preferred place categories.
-- Weather preference: Auto, Indoor, or Outdoor.
+### 6.2 Loading screen
 
-These inputs become the parameters for the tour request. The available cities and categories in the final implementation must match the coverage and fields of the selected data sources.
+Our loading screen communicates progress while information is retrieved from external sources. It presents weather, road traffic, and places as separate retrieval steps so users can understand what the application is processing.
 
-### 6.2 Results screen
+In the implementation, these indicators will reflect actual request states. We intend to handle failed or delayed requests without leaving the user waiting indefinitely.
 
-**Image location:** `docs/images/results-screen.png`
+### 6.3 Results screen
 
-The results screen is intended to display:
+Our results screen brings together the main outputs:
 
-- The generated stop list and estimated visit times.
-- Numbered place markers on a map.
-- Forecast information and a weather visualization.
-- Selectable data layers.
-- Relevant traffic announcements, if available.
+- A map with numbered stops and a suggested visit sequence.
+- A stop list with names, categories, and planned visit times.
+- An hourly weather chart and tour-window indicator.
+- Data-layer toggles for weather, transport, and places.
+- An explanation of how weather influenced the suggested tour.
+- Road traffic announcements when available.
 
-The prototype communicates the intended layout and interactions. Displayed values in a mockup are illustrative unless connected to real API responses. Train schedules, exact rain probabilities, and actual walking routes must only be shown if suitable data sources have been validated.
+We also designed a results state in which traffic announcements are unavailable. This demonstrates how the application can communicate a missing data source rather than silently presenting unavailable information as valid.
 
-**Before generating the final PDF:** Place the two supplied screenshots at the image paths listed above, or update these paths to match the repository.
+The map routes, sample stop timings, and weather values shown in the prototype are illustrative unless backed by validated data. In the implementation, we will distinguish actual measurements and route information from estimates or placeholders.
+
+### 6.4 Prototype screenshots
+
+We use screenshots exported from our Figma prototype to document the main states. The screenshots are stored in `frontend/screen-design/`.
+
+Recommended figures for the submission:
+
+1. **Planning screen:** City and tour preferences.
+2. **Loading screen:** Progress of data retrieval.
+3. **Results screen:** Map, weather, and place layers.
+4. **Unavailable-traffic state:** Results when traffic information cannot be retrieved.
+
+We include separate results screenshots because the unavailable-traffic state demonstrates an important behavior that is not visible in the standard results screen.
 
 ---
 
-## 7. Team Contributions and Division of Labour
+## 7. Team Contributions and Responsibilities
 
-The assignment requires the group to document each member's involvement in the prototype and initial design, along with responsibility for specific components or subsystems.
+We have four members in our group and have provisionally divided the work by area so that we can develop the application in parallel while coordinating integration.
 
-Complete the following table with the group's agreed responsibilities before submission.
-
-| Group member | Prototype and initial-design contribution | Planned component / responsibility |
+| Member | Main area | Contribution and planned responsibilities |
 |---|---|---|
-| Varun Ganesh | API Research Runner and API feasibility testing; contribution to project planning and architecture | API research and integration design; confirm final implementation responsibilities |
-| Pham Thanh | Designed the UI prototype in Figma (Option 1); defined screen content from the API findings; wrote the UI prototype section of this document | Frontend: planning form, map view (Leaflet), forecast chart, data-layer toggles, and calling the backend REST API |
-| [Member 3] | [Add actual contribution] | [Specify component or subsystem] |
-| [Member 4, if applicable] | [Add actual contribution] | [Specify component or subsystem] |
+| **Varun Ganesh Sondur** | Backend architecture and API integration | Built the API Research Runner, investigated external API feasibility, and contributed to project planning and architecture. Will focus on provider adapters, backend integration, and tour-planning logic. |
+| **Pham Thanh** | Frontend and UI | Designed the Figma prototype and contributed the screen content based on API findings. Will focus on the planning form, results layout, map, weather chart, data-layer controls, and frontend-to-backend integration. |
+| **Georgios Malezoglou** | Tour-planning logic and data processing | Will help define place filtering, weather-aware selection rules, stop ordering, duration estimates, and tests for planning behavior. |
+| **Abdullah** | Testing and integration support | Will help test API and application behavior, check city-specific data integration, test unavailable-data scenarios, and coordinate technical documentation and integration checks. |
 
-The table must reflect actual contributions and agreed ownership. Replace the placeholders, remove unused rows, and update responsibilities if they change.
-
----
-
-## 8. Risks, Limitations, and Open Decisions
-
-The design is intentionally preliminary. The following points need validation during development:
-
-- **Forecast fields:** Confirm which measurements and timestamps are returned by the selected FMI query.
-- **Place relevance:** Determine how Service Map records can be filtered to obtain suitable visitor destinations rather than general city services.
-- **Multi-city coverage:** The product should support multiple cities. Helsinki is the first test city, while initial place-data coverage must be verified municipality by municipality. Cities outside the available dataset require another provider. The city selector should list only cities for which the required place data is available; weather and traffic data must also be requested for the selected city.
-- **Traffic scope:** The tested Digitraffic endpoint provides traffic announcements, not confirmed train timetables.
-- **Routing accuracy:** A sequence of map markers is not a pedestrian route. Accurate route geometry and travel durations require suitable routing data.
-- **Weather suitability:** Indoor/outdoor classification may need additional place metadata or carefully defined application rules.
-- **API failure:** The application must decide how to handle timeouts, incomplete responses, and unavailable providers.
-- **Tour duration:** Visit durations and travel estimates are approximations unless supported by suitable data.
-- **Technology choices:** The final frontend and charting technologies must be confirmed by the group.
-
-These limitations do not prevent the initial design from being developed. They identify the assumptions that must be checked before the application makes stronger claims.
+This is our working allocation for the project. We will coordinate shared tasks and adjust responsibilities when needed. We intend for all members to review the overall design and understand how their components integrate with the rest of the application.
 
 ---
 
-## 9. Conclusion
+## 8. AI Tool Usage Disclosure
 
-City Tour Planner is planned as a multi-city data-integrating application that combines weather forecasts, place information, and traffic announcements to help users plan a visit. Helsinki was used as the first API test city, not as a product limitation. The architecture should resolve the selected city and use data providers that cover it, with additional place providers added where the initial Service Map dataset does not cover a city.
+We have used AI tools as part of our project preparation and development workflow. Varun used ChatGPT and Claude to explore design options, support spec-driven development, review and optimize code, and consider architectural and implementation decisions.
 
-The initial design separates presentation, application workflow, tour-planning logic, and external API integration. Provider adapters are intended to isolate external API formats, while a strategy-based approach may be used if multiple tour-selection rules are needed.
+We treat AI-generated suggestions as input rather than automatically accepting them. We review relevant outputs, consider trade-offs, and check technical claims against API responses, available documentation, and implementation tests where applicable. We remain responsible for our final requirements, design decisions, code, and submitted work.
 
-The API Research Runner has provided an initial feasibility check for the selected endpoints using Helsinki as the first test case. The next steps are to validate the exact response fields, test place-data coverage for the intended cities, ensure all providers use the selected city consistently, refine the architecture and UI against the available data, confirm the group's technology choices, and finalize the division of labour.
+This disclosure describes the AI use identified so far. We will ensure the final submission accurately reflects any additional AI use by other members, including code generation or design assistance where applicable.
 
-This document describes the prototype and initial design. Detailed implementation decisions and class-level details can be refined in later iterations.
+---
+
+## 9. Implementation Considerations
+
+Our initial research and design have highlighted several considerations that shape how we will implement the application:
+
+- **City-specific data:** We select suitable data providers for each city rather than assuming one source covers every location.
+- **Place relevance:** We filter general service records so that the itinerary contains places suitable for a city visit.
+- **Forecast interpretation:** We use forecast measurements according to their actual units, timestamps, and available coverage.
+- **Traffic information:** We treat road traffic announcements separately from train schedules and delays.
+- **Routing and duration:** We distinguish estimated travel or visit times from values supported by verified routing data.
+- **Partial failures:** We provide useful feedback when a provider is unavailable and use other suitable data when possible.
+- **Planning rules:** We use the available weather and place information to influence stop selection without assuming data that we have not retrieved.
+
+These considerations follow directly from our API research and the behavior represented in our prototype. They help us keep the planned user experience consistent with the information our application can actually provide.
+
+---
+
+## 10. Conclusion
+
+We designed City Tour Planner as a multi-city tour-planning application that combines weather, place, and traffic information with our own planning logic. We initially tested APIs using Helsinki as our starting location and designed the application so that additional cities can be supported through suitable data providers.
+
+Our proposed architecture separates the frontend, application workflow, planning logic, and provider integrations. We chose this structure to keep external API details separate from the itinerary-generation process and to make the application easier to extend. Our Figma prototype demonstrates the planning workflow, loading feedback, results visualization, and handling of unavailable traffic information.
+
+Our next implementation steps are to connect the agreed components, build the planning logic, integrate the frontend with the backend, and test the application against real API responses. We will use the results of these tests to refine the itinerary and ensure that displayed information accurately reflects the available data.
 
 ---
 
 ## Submission Checklist
 
-- [ ] Confirm the project scope and planned technologies.
-- [ ] Verify the API descriptions against the current research configuration and results.
-- [ ] Add the planning-screen screenshot at `docs/images/input-screen.png`.
-- [ ] Add the results-screen screenshot at `docs/images/results-screen.png`.
-- [ ] Render and review the architecture and design-pattern diagrams in the final document.
-- [ ] Replace all team-member placeholders with actual contributions and responsibilities.
-- [ ] Confirm and accurately disclose AI tool usage.
-- [ ] Ensure the document is the single documentation file submitted in the repository.
+- [ ] Include the relevant Figma screenshots with readable captions.
+- [ ] Render and review the architecture diagram.
+- [ ] Confirm the team-responsibility table with all four members.
+- [ ] Confirm that the AI usage disclosure reflects the team's actual workflow.
+- [ ] Ensure that illustrative weather values and routes are not presented as live data.
+- [ ] Check that the document matches the current prototype and API Research Runner results.
 - [ ] Tag the final prototype submission as `proto-version`.
