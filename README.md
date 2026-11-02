@@ -67,8 +67,12 @@ The team will:
 
 The team will collaborate on API research and the decisions that affect the overall system design.
 
+## Running the Application
+
+- **Backend (Spring Boot):** see [backend/README.md](backend/README.md) for the requirements and the commands to build and run it.
+- **Design documentation for the backend:** [backend/docs/](backend/docs/).
+- **API research tool:** see [api-research-runner/README.md](api-research-runner/README.md).
+
 ## Project Status
 
-**Current phase:** Repository setup and API research.
-
-Detailed architecture and design documentation will be developed after the team has tested the candidate data sources and agreed on the integration approach.
+**Current phase:** Midterm. The backend skeleton (interfaces, models, HTTP client, facade, controller and places repository) is running. The weather and traffic adapters and the tour strategies are still being implemented.

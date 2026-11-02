@@ -1,0 +1,109 @@
+{
+    "language": "en",
+    "factors": [
+        "WEATHER",
+        "TRAFFIC"
+    ],
+    "stops": [
+        {
+            "place": {
+                "id": "vt-10715",
+                "name": "Museum Centre Vapriikki",
+                "category": "MUSEUM",
+                "indoor": true,
+                "lat": 61.50300215,
+                "lon": 23.760054,
+                "visitMinutes": 90,
+                "link": "https://visittampere.fi/en/destination/museum-centre-vapriikki/"
+            },
+            "start": "2026-11-03T13:00:00+02:00",
+            "end": "2026-11-03T14:30:00+02:00"
+        },
+        {
+            "place": {
+                "id": "vt-11239",
+                "name": "World's Only Moomin Museum",
+                "category": "MUSEUM",
+                "indoor": true,
+                "lat": 61.495949,
+                "lon": 23.78134,
+                "visitMinutes": 60,
+                "link": "https://visittampere.fi/en/destination/worlds-only-moomin-museum/"
+            },
+            "start": "2026-11-03T14:45:00+02:00",
+            "end": "2026-11-03T15:45:00+02:00"
+        },
+        {
+            "place": {
+                "id": "vt-11021",
+                "name": "Tampere Cathedral",
+                "category": "LANDMARK",
+                "indoor": true,
+                "lat": 61.50251095,
+                "lon": 23.769835,
+                "visitMinutes": 30,
+                "link": "https://visittampere.fi/en/destination/tampere-cathedral/"
+            },
+            "start": "2026-11-03T16:00:00+02:00",
+            "end": "2026-11-03T16:30:00+02:00"
+        }
+    ],
+    "forecast": [
+        {
+            "time": "2026-11-03T13:00:00+02:00",
+            "temperature": 6.2,
+            "precipitationAmount": 0.09,
+            "cloudCover": 96.2,
+            "wind": 6.35
+        },
+        {
+            "time": "2026-11-03T14:00:00+02:00",
+            "temperature": 5.9,
+            "precipitationAmount": 0.09,
+            "cloudCover": 53.5,
+            "wind": 6.08
+        },
+        {
+            "time": "2026-11-03T15:00:00+02:00",
+            "temperature": 5.7,
+            "precipitationAmount": 0.09,
+            "cloudCover": 82.1,
+            "wind": 6.09
+        },
+        {
+            "time": "2026-11-03T16:00:00+02:00",
+            "temperature": 5.2,
+            "precipitationAmount": 0.1,
+            "cloudCover": 90.0,
+            "wind": 5.8
+        }
+    ],
+    "announcements": [
+        {
+            "type": "Tie on suljettu liikenteeltä",
+            "description": "Itsenäisyydenkatu, Tampere. Liikennetiedote. ",
+            "area": "Tampere",
+            "language": "fi",
+            "startTime": "2026-06-01T03:00:00Z",
+            "endTime": null,
+            "geometry": {
+                "paths": [
+                    [
+                        {
+                            "lat": 61.498527,
+                            "lon": 23.771694
+                        },
+                        {
+                            "lat": 61.498877,
+                            "lon": 23.77585
+                        }
+                    ]
+                ]
+            }
+        }
+    ],
+    "weatherStatus": "AVAILABLE",
+    "trafficStatus": "AVAILABLE",
+    "trafficTextLanguage": "fi",
+    "explanation": "Demo output: no real strategy is running, the stops come from demo/adapter-and-strategy-output.json."
+}

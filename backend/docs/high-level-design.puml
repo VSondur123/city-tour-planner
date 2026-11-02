@@ -1,0 +1,35 @@
+@startuml high-level-design
+title City Tour Planner - High-level design
+left to right direction
+skinparam componentStyle rectangle
+
+package "Frontend (MVC: View)" {
+  [React UI]
+}
+
+package "Backend (Spring Boot service)" {
+  [TourController] <<Controller>>
+  [TourService] <<Facade>>
+  [Tour Strategies] <<Strategy>>
+  [Model] <<Model>>
+  [FmiWeatherAdapter] <<Adapter>>
+  [DigitrafficAdapter] <<Adapter>>
+  [JsonPlaceRepository]
+}
+
+cloud "FMI API" as FMI
+cloud "Digitraffic API" as DT
+database "places.json" as JSON
+
+[React UI] --> [TourController] : HTTP / JSON
+[TourController] --> [TourService]
+[TourService] --> [Tour Strategies]
+[TourService] --> [FmiWeatherAdapter]
+[TourService] --> [DigitrafficAdapter]
+[TourService] --> [JsonPlaceRepository]
+[FmiWeatherAdapter] --> FMI
+[DigitrafficAdapter] --> DT
+[JsonPlaceRepository] --> JSON
+[TourController] ..> [Model]
+[TourService] ..> [Model]
+@enduml
