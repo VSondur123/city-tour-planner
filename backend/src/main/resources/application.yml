@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: city-tour-planner-backend
+
+server:
+  port: 8080
+
+planner:
+  zone: Europe/Helsinki
+  places-file: classpath:data/places.json
+
+  http:
+    connect-timeout-seconds: 10
+    request-timeout-seconds: 20
+
+  cors:
+    allowed-origins:
+      - http://localhost:5173
+
+  providers:
+    fmi:
+      base-url: https://opendata.fmi.fi
+      path: /wfs
+      parameters:
+        service: WFS
+        version: "2.0.0"
+        request: getFeature
+        storedquery_id: "fmi::forecast::harmonie::surface::point::multipointcoverage"
+
+    digitraffic:
+      base-url: https://tie.digitraffic.fi
+      path: /api/traffic-message/v2/traffic-announcements
+      parameters: { }

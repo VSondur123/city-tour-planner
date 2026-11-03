@@ -1,0 +1,67 @@
+@startuml generate-tour-sequence
+title City Tour Planner - Page load and generate tour
+autonumber
+
+actor User
+participant "React UI" as UI
+participant TourController as C
+participant "TourService\n(Facade)" as S
+participant WeatherProvider as W
+participant TrafficProvider as T
+participant PlaceRepository as P
+participant TourStrategyFactory as F
+participant TourStrategy as St
+
+== Page load ==
+UI -> C : GET /api/cities
+C -> S : listCities()
+S -> P : findCities()
+P --> S : List<City>
+S --> C : List<City>
+C --> UI : cities (fills the city dropdown)
+
+== Generate tour ==
+User -> UI : city, date, start time, duration, language, factors
+UI -> C : POST /api/tour (JSON)
+C -> S : generateTour(request)
+
+S -> W : getForecast(city, date)
+alt FMI available
+  W --> S : List<HourlyForecast>
+else FMI fails
+  W --> S : error
+  note right of S : weatherStatus = UNAVAILABLE\nrest of the tour continues
+end
+
+S -> T : getAnnouncements(city, language)
+alt Digitraffic available
+  T --> S : List<TrafficAnnouncement>\n(AVAILABLE, or EMPTY if none)
+else Digitraffic fails
+  T --> S : error
+  note right of S : trafficStatus = UNAVAILABLE\nrest of the tour continues
+end
+
+S -> P : findByCity(city)
+P --> S : List<Place>
+
+S -> F : choose(forecast, factors)
+F --> S : TourStrategy
+S -> St : plan(places, request, forecast, announcements)
+St --> S : List<Stop>
+S -> St : explanation(language)
+St --> S : text for "Why this tour"
+note right of S : Places are resolved to the\nrequested language (PlaceView)
+
+S --> C : TourResult
+C --> UI : TourResult (JSON)
+UI --> User : map, stops, weather, traffic
+
+== Results screen ==
+note over UI
+  Display layers (show/hide weather, traffic, places):
+  client-side only, no request.
+end note
+User -> UI : flips a planning mode or the language
+UI -> C : POST /api/tour (new factors / language)
+note right of C : same flow as above
+@enduml

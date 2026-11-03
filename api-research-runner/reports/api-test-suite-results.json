@@ -1,43 +1,98 @@
 {
   "suiteName" : "City Tour Planner API Research",
-  "runAt" : "2026-10-14T13:11:32.610878+03:00",
+  "runAt" : "2026-10-29T17:14:17.655141+02:00",
   "summary" : {
-    "totalTests" : 3,
-    "passed" : 3,
+    "totalTests" : 8,
+    "passed" : 8,
     "failed" : 0
   },
   "results" : [ {
     "source" : "fmi/helsinki-forecast",
-    "endpoint" : "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::forecast::harmonie::surface::point::multipointcoverage&place=helsinki",
+    "endpoint" : "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::forecast::harmonie::surface::point::multipointcoverage&place=tampere",
     "successful" : true,
     "statusCode" : 200,
     "contentType" : "text/xml; charset=UTF-8",
-    "responseTime" : "PT0.101094S",
+    "responseTime" : "PT0.130897S",
     "usefulFields" : [ ],
-    "responsePreview" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wfs:FeatureCollection\n    timeStamp=\"2026-10-14T09:58:35Z\"\n    numberMatched=\"1\"\n    numberReturned=\"1\"\n    xmlns:wfs=\"http://www.opengis.net/wfs/2.0\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n    xmlns:om=\"http://www.opengis.net/om/2.0\"\n    xmlns:omso=\"http://inspire.ec.europa.eu/schemas/omso/3.0\"\n    xmlns:ompr=\"http://inspire.ec.europa.eu/schemas/ompr/3.0\"\n    xmlns:gml=\"http://www.opengis.n",
+    "responsePreview" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wfs:FeatureCollection\n    timeStamp=\"2026-10-29T15:14:11Z\"\n    numberMatched=\"1\"\n    numberReturned=\"1\"\n    xmlns:wfs=\"http://www.opengis.net/wfs/2.0\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xmlns:xlink=\"http://www.w3.org/1999/xlink\"\n    xmlns:om=\"http://www.opengis.net/om/2.0\"\n    xmlns:omso=\"http://inspire.ec.europa.eu/schemas/omso/3.0\"\n    xmlns:ompr=\"http://inspire.ec.europa.eu/schemas/ompr/3.0\"\n    xmlns:gml=\"http://www.opengis.n",
     "error" : null,
-    "testedAt" : "2026-10-14T10:11:30.349760Z"
+    "testedAt" : "2026-10-29T15:14:11.018670Z"
   }, {
     "source" : "digitraffic/traffic-announcements",
     "endpoint" : "https://tie.digitraffic.fi/api/traffic-message/v2/traffic-announcements",
     "successful" : true,
     "statusCode" : 200,
     "contentType" : "application/json;charset=UTF-8",
-    "responseTime" : "PT0.116463S",
+    "responseTime" : "PT0.169636S",
     "usefulFields" : [ ],
-    "responsePreview" : "{\n  \"type\" : \"FeatureCollection\",\n  \"dataUpdatedTime\" : \"2026-10-14T10:06:21.017Z\",\n  \"features\" : [ {\n    \"type\" : \"Feature\",\n    \"geometry\" : {\n      \"type\" : \"MultiLineString\",\n      \"coordinates\" : [ [ [ 24.453737, 60.273877 ], [ 24.453098, 60.274247 ], [ 24.452578, 60.274569 ], [ 24.452562, 60.274580 ], [ 24.451908, 60.275031 ], [ 24.451902, 60.275035 ], [ 24.451505, 60.275335 ], [ 24.451325, 60.275490 ], [ 24.451316, 60.275498 ], [ 24.451277, 60.275535 ], [ 24.450840, 60.275941 ], [ 24.450",
+    "responsePreview" : "{\n  \"type\" : \"FeatureCollection\",\n  \"dataUpdatedTime\" : \"2026-10-29T13:37:11.017Z\",\n  \"features\" : [ {\n    \"type\" : \"Feature\",\n    \"geometry\" : {\n      \"type\" : \"MultiLineString\",\n      \"coordinates\" : [ [ [ 22.240094, 60.431264 ], [ 22.240096, 60.431283 ], [ 22.240123, 60.431408 ], [ 22.240193, 60.431621 ], [ 22.240199, 60.431638 ], [ 22.240310, 60.431919 ], [ 22.240374, 60.432025 ], [ 22.240402, 60.432069 ], [ 22.240406, 60.432074 ], [ 22.240561, 60.432275 ], [ 22.240574, 60.432292 ], [ 22.240",
     "error" : null,
-    "testedAt" : "2026-10-14T10:11:30.450926Z"
+    "testedAt" : "2026-10-29T15:14:11.149626Z"
   }, {
     "source" : "places/service-locations",
     "endpoint" : "https://www.hel.fi/palvelukarttaws/rest/v4/unit/",
     "successful" : true,
     "statusCode" : 200,
     "contentType" : "application/json;charset=UTF8",
-    "responseTime" : "PT2.042706S",
+    "responseTime" : "PT4.772083S",
     "usefulFields" : [ ],
     "responsePreview" : "[{\"id\":2,\"org_id\":\"83e74666-0836-4c1d-948a-4b34a8b90301\",\"dept_id\":\"55bdee79-0e07-48c4-aaf0-ad1b3a12d2bc\",\"provider_type\":\"SELF_PRODUCED\",\"data_source_url\":\"www.hel.fi\",\"name_fi\":\"Päiväkoti Kannelmäki\",\"name_sv\":\"Päiväkoti Kannelmäki\",\"name_en\":\"Daycare Kannelmäki\",\"ontologyword_ids\":[663],\"ontologytree_ids\":[870,871],\"desc_fi\":\"Päiväkoti Kannelmäki on peruskorjauksen vuoksi toistaiseksi suljettu.\\n\\nPäiväkodin johtaja: Annina Peltonen p.0931041608 annina.peltonen@hel.fi\\nVarajohtaja:    Salla-M",
     "error" : null,
-    "testedAt" : "2026-10-14T10:11:30.567405Z"
+    "testedAt" : "2026-10-29T15:14:11.319279Z"
+  }, {
+    "source" : "places-helsinki-sights/units",
+    "endpoint" : "https://www.hel.fi/palvelukarttaws/rest/v4/unit/?ontologytree=749",
+    "successful" : true,
+    "statusCode" : 200,
+    "contentType" : "application/json;charset=UTF8",
+    "responseTime" : "PT0.308043S",
+    "usefulFields" : [ ],
+    "responsePreview" : "[{\"id\":7205,\"org_id\":\"83e74666-0836-4c1d-948a-4b34a8b90301\",\"dept_id\":\"db1a08b5-fdfe-4950-8549-6948a3fcc584\",\"provider_type\":\"SELF_PRODUCED\",\"data_source_url\":\"www.helen.fi\",\"name_fi\":\"Sähkötalo\",\"name_sv\":\"Elhuset\",\"name_en\":\"The head office of Helsingin Energia, Sähkötalo\",\"ontologyword_ids\":[62,473],\"ontologytree_ids\":[25,273,749],\"sources\":[{\"source\":\"kaupunkialusta\",\"id\":\"3002\"}],\"desc_fi\":\"Toimipisteellä ei ole asiakaspalvelua.\",\"latitude\":60.16808,\"longitude\":24.930794,\"northing_etrs_gk25",
+    "error" : null,
+    "testedAt" : "2026-10-29T15:14:16.091431Z"
+  }, {
+    "source" : "places-helsinki-museums/units",
+    "endpoint" : "https://www.hel.fi/palvelukarttaws/rest/v4/unit/?ontologytree=362",
+    "successful" : true,
+    "statusCode" : 200,
+    "contentType" : "application/json;charset=UTF8",
+    "responseTime" : "PT0.275267S",
+    "usefulFields" : [ ],
+    "responsePreview" : "[{\"id\":7255,\"org_id\":\"83e74666-0836-4c1d-948a-4b34a8b90301\",\"dept_id\":\"a194de3c-a043-4fae-9d7d-356e6e33ba79\",\"provider_type\":\"SELF_PRODUCED\",\"data_source_url\":\"www.hel.fi\",\"name_fi\":\"Kanneltalo\",\"name_sv\":\"Gamlasgården\",\"name_en\":\"Cultural Centre Kanneltalo\",\"ontologyword_ids\":[239,326,329,345,672,686,694,806,868,915,1017,1096,1111,1113,1116,1122,1123,1125,1126],\"ontologytree_ids\":[151,260,331,354,355,357,359,360,364,507,738,742,747,752,2173,2245,2359,2434],\"sources\":[{\"source\":\"kaupunkialusta\",",
+    "error" : null,
+    "testedAt" : "2026-10-29T15:14:16.399509Z"
+  }, {
+    "source" : "places-helsinki-parks/units",
+    "endpoint" : "https://www.hel.fi/palvelukarttaws/rest/v4/unit/?ontologytree=491",
+    "successful" : true,
+    "statusCode" : 200,
+    "contentType" : "application/json;charset=UTF8",
+    "responseTime" : "PT0.439047S",
+    "usefulFields" : [ ],
+    "responsePreview" : "[{\"id\":12,\"org_id\":\"83e74666-0836-4c1d-948a-4b34a8b90301\",\"dept_id\":\"55bdee79-0e07-48c4-aaf0-ad1b3a12d2bc\",\"provider_type\":\"SELF_PRODUCED\",\"data_source_url\":\"www.hel.fi\",\"name_fi\":\"Leikkipuisto Trumpetti\",\"name_sv\":\"Lekparken Trumpeten\",\"name_en\":\"Playground Trumpetti\",\"ontologyword_ids\":[86,475],\"ontologytree_ids\":[69,500,976,981],\"desc_fi\":\"Leikkipuisto Trumpetti sijaitsee Kannelmäessä hyvien kulkuyhteyksien varrella.\\n\\nLeikkipuisto on turvallinen ajanviettopaikka, jossa järjestetään monipuol",
+    "error" : null,
+    "testedAt" : "2026-10-29T15:14:16.674831Z"
+  }, {
+    "source" : "places-helsinki-gardens/units",
+    "endpoint" : "https://www.hel.fi/palvelukarttaws/rest/v4/unit/?ontologytree=344",
+    "successful" : true,
+    "statusCode" : 200,
+    "contentType" : "application/json;charset=UTF8",
+    "responseTime" : "PT0.140902S",
+    "usefulFields" : [ ],
+    "responsePreview" : "[{\"id\":7418,\"org_id\":\"83e74666-0836-4c1d-948a-4b34a8b90301\",\"dept_id\":\"77b1e1bf-9e98-4041-9341-1bc89bd65e43\",\"provider_type\":\"SELF_PRODUCED\",\"data_source_url\":\"www.hel.fi\",\"name_fi\":\"Talvipuutarha\",\"name_sv\":\"Vinterträdgården\",\"name_en\":\"The Winter Garden\",\"ontologyword_ids\":[248,473,786,916],\"ontologytree_ids\":[71,344,502,749],\"sources\":[{\"source\":\"kaupunkialusta\",\"id\":\"73\"}],\"short_desc_fi\":\"Kiireetön kasviparatiisi keskeisellä sijainnilla on niin kaupunkilaisten kuin matkailijoidenkin ikisuos",
+    "error" : null,
+    "testedAt" : "2026-10-29T15:14:17.113905Z"
+  }, {
+    "source" : "places-tampere-visittampere/destination-markers",
+    "endpoint" : "https://visittampere.fi/wp-json/v1/destination-markers",
+    "successful" : true,
+    "statusCode" : 200,
+    "contentType" : "application/json; charset=UTF-8",
+    "responseTime" : "PT0.398312S",
+    "usefulFields" : [ ],
+    "responsePreview" : "{\"count\":2547,\"destinations\":[{\"id\":11025,\"title\":\"Accommodation in the Varala Sports Academy\",\"link\":\"https:\\/\\/visittampere.fi\\/en\\/destination\\/accommodation-in-the-varala-sports-academy\\/\",\"coordinates\":{\"lat\":61.494769410361,\"lon\":23.712975558222},\"destination_type\":{\"id\":8061,\"name\":\"Accomodation\",\"slug\":\"accomodation\",\"link\":\"\",\"icon_url\":\"https:\\/\\/visittampere.fi\\/wp-content\\/uploads\\/2026\\/08\\/Icon_talo.svg\"},\"popup_html\":\"\"},{\"id\":10861,\"title\":\"Adventure Park Flowpark Varala\",\"link\":",
+    "error" : null,
+    "testedAt" : "2026-10-29T15:14:17.254850Z"
   } ]
 }

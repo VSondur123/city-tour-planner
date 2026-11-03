@@ -29,7 +29,7 @@ research:
             version: "2.0.0"
             request: getFeature
             storedquery_id: "fmi::forecast::harmonie::surface::point::multipointcoverage"
-            place: helsinki
+            place: tampere
 
     digitraffic:
       enabled: true
@@ -47,6 +47,59 @@ research:
       endpoints:
         service-locations:
           path: /unit/
+          method: GET
+          parameters: { }
+
+    # Helsinki Service Map filtered by ontology tree (749 sights, 362 museums,
+    # 491 parks and green areas, 344 botanic gardens)
+    places-helsinki-sights:
+      enabled: true
+      base-url: https://www.hel.fi/palvelukarttaws/rest/v4
+      endpoints:
+        units:
+          path: /unit/
+          method: GET
+          parameters:
+            ontologytree: "749"
+
+    places-helsinki-museums:
+      enabled: true
+      base-url: https://www.hel.fi/palvelukarttaws/rest/v4
+      endpoints:
+        units:
+          path: /unit/
+          method: GET
+          parameters:
+            ontologytree: "362"
+
+    places-helsinki-parks:
+      enabled: true
+      base-url: https://www.hel.fi/palvelukarttaws/rest/v4
+      endpoints:
+        units:
+          path: /unit/
+          method: GET
+          parameters:
+            ontologytree: "491"
+
+    places-helsinki-gardens:
+      enabled: true
+      base-url: https://www.hel.fi/palvelukarttaws/rest/v4
+      endpoints:
+        units:
+          path: /unit/
+          method: GET
+          parameters:
+            ontologytree: "344"
+
+    # VisitTampere website map backend (undocumented; the documented
+    # /api/v1/* endpoints return a 404 page). Returns all categories at once.
+    places-tampere-visittampere:
+      enabled: true
+      base-url: https://visittampere.fi
+      endpoints:
+        destination-markers:
+          path: /wp-json/v1/destination-markers
           method: GET
           parameters: { }
 

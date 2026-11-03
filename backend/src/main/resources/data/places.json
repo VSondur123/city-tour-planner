@@ -1,0 +1,104 @@
+{
+  "Tampere": [
+    {
+      "id": "vt-10715",
+      "sourceIds": {
+        "en": 10715,
+        "fi": 8438
+      },
+      "name": {
+        "en": "Museum Centre Vapriikki",
+        "fi": "Museokeskus Vapriikki"
+      },
+      "category": "MUSEUM",
+      "indoor": true,
+      "lat": 61.50300215,
+      "lon": 23.760054,
+      "visitMinutes": 90,
+      "link": {
+        "en": "https://visittampere.fi/en/destination/museum-centre-vapriikki/",
+        "fi": "https://visittampere.fi/kayntikohde/museokeskus-vapriikki/"
+      }
+    },
+    {
+      "id": "vt-11239",
+      "sourceIds": {
+        "en": 11239,
+        "fi": 9156
+      },
+      "name": {
+        "en": "World's Only Moomin Museum",
+        "fi": "Maailman ainoa Muumimuseo"
+      },
+      "category": "MUSEUM",
+      "indoor": true,
+      "lat": 61.495949,
+      "lon": 23.78134,
+      "visitMinutes": 60,
+      "link": {
+        "en": "https://visittampere.fi/en/destination/worlds-only-moomin-museum/",
+        "fi": "https://visittampere.fi/kayntikohde/maailman-ainoa-muumimuseo/"
+      }
+    },
+    {
+      "id": "vt-11021",
+      "sourceIds": {
+        "en": 11021,
+        "fi": 8862
+      },
+      "name": {
+        "en": "Tampere Cathedral",
+        "fi": "Tuomiokirkko"
+      },
+      "category": "LANDMARK",
+      "indoor": true,
+      "lat": 61.50251095,
+      "lon": 23.769835,
+      "visitMinutes": 30,
+      "link": {
+        "en": "https://visittampere.fi/en/destination/tampere-cathedral/",
+        "fi": "https://visittampere.fi/kayntikohde/tuomiokirkko/"
+      }
+    },
+    {
+      "id": "vt-11141",
+      "sourceIds": {
+        "en": 11141,
+        "fi": 9008
+      },
+      "name": {
+        "en": "Näsinneula Observation Tower",
+        "fi": "Näsinneulan näkötorni"
+      },
+      "category": "LANDMARK",
+      "indoor": false,
+      "lat": 61.504993795,
+      "lon": 23.74326,
+      "visitMinutes": 45,
+      "link": {
+        "en": "https://visittampere.fi/en/destination/nasinneula-observation-tower/",
+        "fi": "https://visittampere.fi/kayntikohde/nasinneulan-nakotorni/"
+      }
+    },
+    {
+      "id": "vt-11145",
+      "sourceIds": {
+        "en": 11145,
+        "fi": 9012
+      },
+      "name": {
+        "en": "Pyynikki Nature Trail",
+        "fi": "Pyynikin luontopolku"
+      },
+      "category": "NATURE",
+      "indoor": false,
+      "lat": 61.497454557,
+      "lon": 23.72648,
+      "visitMinutes": 60,
+      "link": {
+        "en": "https://visittampere.fi/en/destination/pyynikki-nature-trail/",
+        "fi": "https://visittampere.fi/kayntikohde/pyynikin-luontopolku/"
+      }
+    }
+  ]
+}

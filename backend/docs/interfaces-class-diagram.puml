@@ -1,0 +1,165 @@
+@startuml interfaces-class-diagram
+title City Tour Planner - Interfaces and main classes
+skinparam classAttributeIconSize 0
+
+class TourController <<Controller>> {
+  +generateTour(TourRequest): TourResult
+  +getCities(): List<City>
+  +getPlaces(city, language): List<Place>
+}
+
+class TourService <<Facade>> {
+  +generateTour(TourRequest): TourResult
+  +listCities(): List<City>
+  +listPlaces(city, language): List<Place>
+}
+
+interface WeatherProvider {
+  +getForecast(city, date): List<HourlyForecast>
+}
+interface TrafficProvider {
+  +getAnnouncements(city, language): List<TrafficAnnouncement>
+}
+interface PlaceRepository {
+  +findCities(): List<City>
+  +findByCity(city): List<Place>
+}
+interface TourStrategy {
+  +plan(places, request, forecast, announcements): List<Stop>
+  +explanation(language): String
+}
+
+class FmiWeatherAdapter <<Adapter>>
+class DigitrafficAdapter <<Adapter>>
+class FmiForecastParser
+class DigitrafficAnnouncementParser
+class ApiHttpClient
+class ProviderException
+class JsonPlaceRepository
+class IndoorTourStrategy
+class GeneralTourStrategy
+class TourStrategyFactory <<Factory Method>> {
+  +choose(forecast, factors): TourStrategy
+}
+
+class City {
+  id
+  name
+}
+class TourRequest {
+  city
+  date
+  startTime
+  durationHours
+  language : en | fi
+  factors : Set<Factor>
+}
+enum Factor {
+  WEATHER
+  TRAFFIC
+}
+class TourResult {
+  stops : List<StopView>
+  forecast
+  announcements
+  weatherStatus : DataStatus
+  trafficStatus : DataStatus
+  language
+  factors
+  trafficTextLanguage
+  explanation
+}
+enum DataStatus {
+  AVAILABLE
+  EMPTY
+  UNAVAILABLE
+}
+class LocalizedText {
+  en
+  fi
+}
+class PlaceView {
+  id
+  name  // resolved to one language
+  category
+  indoor
+  lat / lon
+  visitMinutes
+  link
+}
+class StopView {
+  place : PlaceView
+  start / end
+}
+class Place {
+  id
+  name : LocalizedText
+  city
+  category  // language-neutral code
+  indoor  // curated by us
+  lat / lon
+  visitMinutes  // curated by us
+  link : LocalizedText
+}
+class Stop {
+  place
+  start / end
+}
+class HourlyForecast {
+  time
+  temperature
+  precipitationAmount
+  cloudCover
+  wind
+}
+class TrafficAnnouncement {
+  type
+  description
+  area
+  language
+  startTime
+  endTime
+  geometry
+}
+
+TourController --> TourService
+TourService --> WeatherProvider
+TourService --> TrafficProvider
+TourService --> PlaceRepository
+TourService --> TourStrategyFactory
+TourStrategyFactory ..> TourStrategy : creates
+
+WeatherProvider <|.. FmiWeatherAdapter
+TrafficProvider <|.. DigitrafficAdapter
+PlaceRepository <|.. JsonPlaceRepository
+TourStrategy <|.. IndoorTourStrategy
+TourStrategy <|.. GeneralTourStrategy
+
+TourService ..> TourRequest
+TourService ..> TourResult
+TourRequest --> Factor
+PlaceRepository ..> City
+FmiWeatherAdapter --> ApiHttpClient
+FmiWeatherAdapter --> FmiForecastParser
+DigitrafficAdapter --> ApiHttpClient
+DigitrafficAdapter --> DigitrafficAnnouncementParser
+FmiWeatherAdapter ..> ProviderException : throws
+DigitrafficAdapter ..> ProviderException : throws
+TourService ..> ProviderException : catches
+
+TourResult o-- StopView
+TourResult o-- HourlyForecast
+TourResult o-- TrafficAnnouncement
+TourResult --> DataStatus
+StopView --> PlaceView
+Stop --> Place
+Place --> LocalizedText
+TourService ..> PlaceView : maps Place to PlaceView
+
+note bottom of TourResult
+  Field names are proposed,
+  pending team agreement.
+  'factors' controls what the planner uses;
+  weather and traffic are always fetched and returned.
+end note
+@enduml

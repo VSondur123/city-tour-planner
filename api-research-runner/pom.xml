@@ -21,9 +21,11 @@
 
     <properties>
         <java.version>22</java.version>
+        <lombok.version>1.18.42</lombok.version>
     </properties>
 
     <dependencies>
+
         <!-- Core Spring Boot infrastructure -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -41,9 +43,11 @@
             <artifactId>spring-boot-starter-json</artifactId>
         </dependency>
 
+        <!-- Lombok annotations -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
 
@@ -51,10 +55,28 @@
 
     <build>
         <plugins>
+
+            <!-- Spring Boot application runner -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
+            <!-- Explicit Lombok annotation processing -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
