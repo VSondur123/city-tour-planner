@@ -2,77 +2,168 @@
 
 ## Overview
 
-City Tour Planner is a software design course project that aims to generate a simple city tour by combining data from multiple independent external data sources.
+City Tour Planner is a software design course project that generates a simple city tour by combining data from multiple independent external sources.
 
-The application will allow users to select a city and a preferred time, retrieve relevant information from external sources, and generate a tour based on the available data. The results will be presented through suitable visualizations to help users explore the city.
+Users select a city, date, start time and duration. The system retrieves weather, traffic and places data, then produces a basic itinerary. Results are shown on a map together with weather charts and traffic information.
 
 ## Objectives
 
 - Retrieve data from multiple independent external sources.
 - Combine the retrieved data in a meaningful way.
 - Generate a basic itinerary based on the available information.
-- Present the results through visualizations such as maps, charts, and itinerary views.
-- Design the system so that additional data sources can be integrated in the future.
+- Present the results through visualizations (map, weather chart, traffic panel, stop list).
+- Design the system so that additional data sources can be integrated later.
 
-## Initial Scope
+## Current Scope
 
-The project will initially explore the following capabilities:
+- City and date/time selection (currently focused on Tampere).
+- Weather forecasts via **FMI Open Data**.
+- Traffic / disruption information via **Digitraffic**.
+- Places of interest stored in a local JSON file (Visit Tampere data, bilingual en/fi).
+- Tour generation that can take weather and traffic into account (strategy still under development).
+- Visualization: interactive map (Leaflet), weather chart (Recharts), traffic panel and stop list.
 
-- City and date/time selection.
-- Weather information using FMI Open Data.
-- Relevant transport or traffic information using Digitraffic.
-- Places and points of interest using a suitable open-data dataset.
-- Basic tour generation using the collected data.
-- Visualization of the generated tour and relevant contextual information.
+## Data Sources
 
-The exact features and supported data sources will be finalized after API research and testing.
+| Source | Purpose | Status |
+|--------|---------|--------|
+| **FMI Open Data** | Weather forecasts & observations | Adapter skeleton present; full implementation in progress |
+| **Digitraffic** | Traffic announcements / disruptions | Adapter skeleton present; full implementation in progress |
+| **Local JSON** (`places.json`) | Museums, landmarks and other points of interest | Implemented (Visit Tampere data) |
 
-## Candidate Data Sources
+Open city data catalogues were investigated; a local repository was chosen because no suitable open API covering all required places was found.
 
-- **FMI Open Data** — Weather forecasts and observations.
-    - Documentation: https://en.ilmatieteenlaitos.fi/open-data-manual
-- **Digitraffic** — Transport and traffic-related data.
-    - Documentation: https://www.digitraffic.fi/en/
-- **Open city data** — Potential datasets for attractions and points of interest.
-    - Catalogue: https://www.avoindata.fi/
+## Architecture & Design Patterns
 
-These are candidate sources only. The team will investigate their available data, response formats, access requirements, limitations, and suitability before deciding which sources to integrate.
+- **Backend**: Spring Boot (Java 22)
+  - `TourController` – HTTP boundary
+  - `TourService` – Facade that orchestrates providers and handles partial failure
+  - `WeatherProvider` / `TrafficProvider` – Adapter interfaces (FMI & Digitraffic)
+  - `PlaceRepository` – JSON-based repository
+  - `TourStrategy` + `TourStrategyFactory` – Strategy pattern for stop selection
+- **Frontend**: React + Vite + Tailwind CSS + Leaflet + Recharts
+  - Pure view layer; no business logic
+  - Currently uses mock data; ready to call the backend API
 
-## Planned Technology
+Design documentation (class diagrams, sequence diagrams, API contract, component responsibilities) lives in `backend/docs/`.
 
-- **Backend:** Java
-- **Frontend:** React, HTML, and CSS
-- **External data:** To be determined through API research
+## Technology Stack
 
-The final architecture, libraries, and integration approach will be decided after the initial research phase.
+| Layer | Technology |
+|-------|------------|
+| Backend | Java 22, Spring Boot, Maven |
+| Frontend | React 19, Vite, Tailwind CSS 4, Leaflet, Recharts |
+| External APIs | FMI Open Data, Digitraffic |
+| Places data | Local JSON file |
 
-## Development Approach
+## Project Structure
 
-Development will begin with collaborative research and testing of the candidate APIs and datasets.
-
-The team will:
-
-1. Investigate each candidate data source.
-2. Test representative requests and inspect actual responses.
-3. Identify useful data fields, access requirements, and limitations.
-4. Evaluate whether the sources support the intended application.
-5. Agree on the data sources to use.
-6. Design the system architecture and begin implementation.
-
-## Team Responsibilities
-
-- **Varun:** Architecture and integration.
-- **George:** Tour-generation logic and design rationale.
-- **Thanh:** User interface prototype.
-
-The team will collaborate on API research and the decisions that affect the overall system design.
+```
+.
+├── backend/                  # Spring Boot application
+│   ├── docs/                 # Design docs, API contract, samples, self-evaluation
+│   ├── src/main/java/...     # Controllers, services, adapters, models, repository
+│   ├── src/main/resources/
+│   │   ├── data/places.json
+│   │   └── demo/             # Demo profile data
+│   └── README.md             # Backend run instructions
+└── frontend/
+    └── city-tour-ui/         # React + Vite application
+        ├── src/
+        │   ├── components/   # PlanningForm, MapView, WeatherChart, …
+        │   └── data/         # mockTour.js (temporary)
+        └── README.md
+```
 
 ## Running the Application
 
-- **Backend (Spring Boot):** see [backend/README.md](backend/README.md) for the requirements and the commands to build and run it.
-- **Design documentation for the backend:** [backend/docs/](backend/docs/).
-- **API research tool:** see [api-research-runner/README.md](api-research-runner/README.md).
+### Backend
 
-## Project Status
+Requirements: **Java 22**, **Maven 3.9+**, free port **8080**.
 
-**Current phase:** Midterm. The backend skeleton (interfaces, models, HTTP client, facade, controller and places repository) is running. The weather and traffic adapters and the tour strategies are still being implemented.
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+Or build a jar:
+
+```bash
+mvn clean package -DskipTests
+java -jar target/city-tour-planner-backend-0.0.1-SNAPSHOT.jar
+```
+
+Smoke test:
+
+```bash
+curl http://localhost:8080/api/cities
+# → [{"id":"tampere","name":"Tampere"}]
+```
+
+**Demo profile** (uses fixed sample data while adapters/strategies are unfinished):
+
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=demo
+```
+
+Then:
+
+```bash
+curl -X POST http://localhost:8080/api/tour \
+  -H "Content-Type: application/json" \
+  -d '{"city":"tampere","date":"2026-11-03","startTime":"13:00","durationHours":4,"language":"en","factors":["WEATHER","TRAFFIC"]}'
+```
+
+See `backend/README.md` and `backend/docs/api-contract.md` for full details.
+
+### Frontend
+
+```bash
+cd frontend/city-tour-ui
+npm install
+npm run dev
+```
+
+Opens at `http://localhost:5173`.  
+The UI currently uses mock data; it is prepared to call the backend (`CORS` already allows `http://localhost:5173`).
+
+## API Overview
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/api/cities` | List available cities |
+| GET | `/api/places?city=…&language=…` | Places of a city |
+| POST | `/api/tour` | Generate a tour |
+
+Full contract: `backend/docs/api-contract.md`.
+
+## Team Responsibilities
+
+| Member | Focus |
+|--------|--------|
+| **Varun** | Architecture, design patterns, integration, repository structure |
+| **George** | Tour-generation logic and design rationale |
+| **Thanh** | User-interface prototype (Figma → React) |
+
+The team collaborates on API research and overall system decisions.
+
+## Project Status (Midterm)
+
+**Backend**
+- Skeleton is running: interfaces, models, HTTP client, facade (`TourService`), controller, places repository.
+- Weather (`FmiWeatherAdapter`) and traffic (`DigitrafficAdapter`) adapters are placeholders.
+- Tour strategies are still being implemented.
+- Demo profile provides a complete sample response shape.
+
+**Frontend**
+- Planning form, map (Leaflet), weather chart, traffic panel, stop list and layer toggles are implemented.
+- Currently driven by mock data; integration with the real backend API is the next step.
+
+**Known design decision**
+- Places are stored in a local JSON file rather than fetched from an external open-data API (approved by the teaching assistant).
+
+## Documentation
+
+- Backend design & API: `backend/docs/`
+- Backend run instructions: `backend/README.md`
+- Frontend: `frontend/city-tour-ui/README.md` (default Vite template notes)

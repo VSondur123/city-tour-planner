@@ -33,7 +33,13 @@ We expect to make a few changes here and there inside the Strategy part of the d
 - Designed the high-level components and interfaces, and carried out the analysis behind them.
 
 ### Thanh
-- [To be filled in by Thanh.]
+- Created user interface prototypes in Figma (Option 1), consisting of: the planning screen, the loading screen, the results screen with data layer toggles, the results screen with one layer disabled, and the screen showing no traffic information.
+- Optimized the screens after analyzing the APIs so that the UI matches the real data sources (road traffic alerts from Digitraffic instead of train schedules; places from the agreed data source rather than a live open places API).
+- Implemented the React user interface using Vite, Tailwind CSS, Leaflet, and Recharts with the following screens/components: the planning form, data layer toggles, the map screen, the hourly weather graph, the stops list, and the road traffic information component.
+- Added the ability to toggle layers so that Weather, Traffic, and Location data can be toggled on or off without having to make new API calls for data. The base map is still shown and layers control what is drawn on top of the base map.
+- Added a "no traffic information" state where a notification is shown, the traffic panel is cleared out, and the related lines on the map are removed.
+- Created the README file for the UI that includes the Node version requirement as well as instructions on how to install, run, and build the application.
+- The UI at the moment uses sample data in the format that will be expected from the backend but is not connected to the Java backend. The next steps are: connecting the form to REST endpoints in the backend, replacing the sample data with API responses, and adding a loading bar for each data source.
 
 ### Georgios Malezoglou
 - Working on research and development for the maps.
