@@ -27,10 +27,16 @@ We expect to make a few changes here and there inside the Strategy part of the d
 ## 5. Individual tasks accomplished or changed per group member
 
 ### Varun Ganesh Sondur
-- Designed the overall repository structure.
-- Identified the proper design patterns for the application.
-- Built the API Research Runner, and identified that we needed to move to a repository structure.
-- Designed the high-level components and interfaces, and carried out the analysis behind them.
+- I designed the repository structure. Chose the design patterns (Adapter, Strategy, Factory Method, Facade, layered architecture, Dependency Inversion). The caching Proxy is not built yet.
+- I built the API Research Runner to test FMI, Digitraffic and VisitTampere. Its results led us to use our curated places data.
+- I designed the components and interfaces (WeatherProvider, TrafficProvider, PlaceRepository, TourStrategy) and the shared models.
+- I implemented the Spring Boot backend skeleton:
+  - the HTTP client and request factory
+  - the TourService facade, which keeps a failing provider from failing the request
+  - the REST controller (/api/cities, /api/places, /api/tour) and structured error handling.
+- I implemented JsonPlaceRepository and the seed places.json.
+- I wrote the API contract, sample responses, PlantUML diagrams and the components and responsibilities document. The frontend and the other backend parts can build against them.
+- I added a demo profile that swaps the stub adapters and strategy for fixed output so the backend can be smoke-tested before those parts are finished.
 
 ### Thanh
 - Created user interface prototypes in Figma (Option 1), consisting of: the planning screen, the loading screen, the results screen with data layer toggles, the results screen with one layer disabled, and the screen showing no traffic information.
