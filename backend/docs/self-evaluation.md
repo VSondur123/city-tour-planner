@@ -53,6 +53,10 @@ We expect to make a few changes here and there inside the Strategy part of the d
 - [Add anything else, to be filled in by Georgios.]
 
 ### Abdullah
-- [To be filled in by Abdullah.]
+- Examined the FMI weather adapter and Digitraffic traffic adapter, including their provider interfaces and intended responsibilities.
+- Reviewed how the adapters are designed to communicate with external APIs through the shared ApiHttpClient.
+- Tested the backend API using GET /api/cities and POST /api/tour with the demo profile.
+- Verified that the demo endpoint returns the expected tour response, including stops, weather information, traffic announcements, and status fields.
+- Reviewed the current implementation and identified that the FMI and Digitraffic adapters are still placeholders and do not yet retrieve real external data.
 
 > [Where any member's contribution differs from the prototype submission, explain the difference here.]
