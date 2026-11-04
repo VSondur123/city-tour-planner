@@ -48,9 +48,31 @@ We expect to make a few changes here and there inside the Strategy part of the d
 - The UI at the moment uses sample data in the format that will be expected from the backend but is not connected to the Java backend. The next steps are: connecting the form to REST endpoints in the backend, replacing the sample data with API responses, and adding a loading bar for each data source.
 
 ### Georgios Malezoglou
-- Working on research and development for the maps.
-- Working with Varun on the progress of the API Research Runner.
-- [Add anything else, to be filled in by Georgios.]
+- Tested and proposed OpenStreetMap and made a small prototype to check how the map looks and if it's functional.
+  - The map displays the desired country (zoomed in on Finland) on load, with different marks for every city where the user can click to zoom into a city.
+  - I did that just to have an idea of how the map could look when a user loads it, and showed it to the team members.
+  - The reason for choosing it is that it is entirely open-source and does not require an API key to access its core geographical data. Also, it looks simple and user friendly.
+  - The prototype was made with the help of Qwen AI coder to speed up the prototype implementation process.
+- Reviewed, discussed and agreed on Varun's proposed design patterns and the overall repository structure for the project.
+- Responsible for the tour generation logic and the factory and strategy pattern implementation. Specifically:
+  - Reviewed and agreed on the implementation of the `TourStrategy` (interface), `GeneralTourStrategy`, `IndoorTourStrategy` and `TourStrategyFactory` classes (where the whole tour generation logic, factory and strategy must be implemented).
+  - Strategy pattern: `GeneralTourStrategy` and `IndoorTourStrategy` have a common interface `TourStrategy` with `plan()` and `explanation()` methods, where:
+    - `plan()` is meant to select the places that fit into the duration the user chose, using each place's visit time, and to return them as an ordered list of stops. Each stop is a place with a start and an end time. It is still a stub and the logic needs to be implemented.
+    - `explanation()` returns a message explaining why a tour plan is chosen. It is still a stub and the logic needs to be implemented.
+  - Factory pattern: in the `TourStrategyFactory` class, the `choose()` method is responsible for choosing between a tour strategy (general or indoor) based on 2 conditions (weather and expected rain). `IndoorTourStrategy` is returned only if the weather factor is enabled and rain is expected, otherwise `GeneralTourStrategy` is returned.
+  - `IndoorTourStrategy` is meant to pick indoor places first and add outdoor places only if time remains, while `GeneralTourStrategy` can use both indoor and outdoor places.
+  - Main flow: `TourService` asks the factory which strategy fits the forecast and the factors the user enabled. It then calls that strategy to select and sort the stops, and builds the final result from those stops, the explanation, the forecast and the traffic announcements. The forecast and announcements are always included in the result, whichever factors the user enabled.
+  - Implemented the `TourStrategyFactory`'s `choose` method and created a separate (private) method `isRainExpected` that checks the hourly forecast and returns true if any hour has precipitation above the 0.5 mm threshold, otherwise false (I chose 0.5 mm for precipitation as the point where rain becomes noticeable. It is a constant and it might be changed later).
+  - Reason for design pattern choice: Strategy is chosen so we can make separate classes for every rule (and add new possible rules) without touching `TourService`. Factory keeps the decision logic (if/else) out of `TourService`, in a separate class that chooses which strategy to use.
+- Planned implementation idea for `GeneralTourStrategy`:
+  - create `endOfTour` that calculates tour starting time + tour duration
+  - add a 15 minute break (constant `VISIT_BREAK`) after a visit to a place is finished
+  - look through the places from `places.json` in order with a for loop
+  - for each place (stop), calculate the current time of the tour + the current place's visit duration + the visit break (`currentTime + visitMinutes + VISIT_BREAK`)
+  - add an if statement checking whether there is room to add a place (stop) or not (checks that `currentTime + visitMinutes + VISIT_BREAK <= tour deadline`)
+  - if the tour deadline is surpassed, the loop continues checking the next places from `places.json` in order and stops only after checking the last place (this might be changed later to stop when the tour's remaining time is less than the minimum visit duration (const `MIN_VISIT_DURATION`), so the loop doesn't need to go on for no reason)
+  - NOTE: when (and how) to add breaks between stops is yet to be decided and the constant value might be changed later. The idea described is still a draft.
+- AI usage note: AI was used on the text of my evaluation to fix grammar and typo mistakes and to rephrase some sentences so they make more sense.
 
 ### Abdullah
 - Examined the FMI weather adapter and Digitraffic traffic adapter, including their provider interfaces and intended responsibilities.
