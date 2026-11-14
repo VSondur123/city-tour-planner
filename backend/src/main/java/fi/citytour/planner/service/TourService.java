@@ -63,7 +63,7 @@ public class TourService {
                         : List.of();
 
         TourStrategy strategy = tourStrategyFactory.choose(
-                plannerForecast, request.factors());
+                plannerForecast, request);
 
         List<StopView> stops = strategy
                 .plan(placeRepository.findByCity(city.id()),
