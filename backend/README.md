@@ -46,9 +46,26 @@ Expected output:
 [{"id":"tampere","name":"Tampere"}]
 ```
 
+## Testing external adapters
+
+The weather (`FmiWeatherAdapter`) and traffic (`DigitrafficAdapter`) adapters are implemented. Dedicated test endpoints are available for direct verification:
+
+```bash
+# Test FMI Weather
+curl -s "http://localhost:8080/api/test/weather?city=tampere"
+
+# Test Digitraffic announcements
+curl -s "http://localhost:8080/api/test/traffic?city=tampere"
+
+# Test both in one call
+curl -s "http://localhost:8080/api/test/overview?city=tampere"
+```
+
+For full testing curl commands, sample responses, and automated test instructions, see [TESTING-ADAPTERS.md](TESTING-ADAPTERS.md).
+
 ## Smoke test with demo data
 
-The weather and traffic adapters and the tour strategies are not implemented yet, so a normal run returns an empty tour. To see the full response shape, start the backend with the `demo` profile. It replaces the adapters and the strategy with the fixed output in `src/main/resources/demo/adapter-and-strategy-output.json`:
+While tour strategies are still being refined, you can test the tour endpoint with the live adapters or use the `demo` profile. The demo profile replaces the adapters and the strategy with fixed sample output:
 
 ```bash
 mvn spring-boot:run -Dspring-boot.run.profiles=demo

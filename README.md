@@ -27,8 +27,8 @@ Users select a city, date, start time and duration. The system retrieves weather
 
 | Source | Purpose | Status |
 |--------|---------|--------|
-| **FMI Open Data** | Weather forecasts & observations | Adapter skeleton present; full implementation in progress |
-| **Digitraffic** | Traffic announcements / disruptions | Adapter skeleton present; full implementation in progress |
+| **FMI Open Data** | Weather forecasts & observations | Implemented (`FmiWeatherAdapter` + `FmiForecastParser`) |
+| **Digitraffic** | Traffic announcements / disruptions | Implemented (`DigitrafficAdapter` + `DigitrafficAnnouncementParser`) |
 | **Local JSON** (`places.json`) | Museums, landmarks and other points of interest | Implemented (Visit Tampere data) |
 
 Open city data catalogues were investigated; a local repository was chosen because no suitable open API covering all required places was found.
@@ -134,8 +134,11 @@ The UI currently uses mock data; it is prepared to call the backend (`CORS` alre
 | GET | `/api/cities` | List available cities |
 | GET | `/api/places?city=…&language=…` | Places of a city |
 | POST | `/api/tour` | Generate a tour |
+| GET | `/api/test/weather?city=…&date=…` | Direct FMI weather adapter test |
+| GET | `/api/test/traffic?city=…&language=…` | Direct Digitraffic adapter test |
+| GET | `/api/test/overview?city=…` | Combined adapter overview test |
 
-Full contract: `backend/docs/api-contract.md`.
+Full contract: `backend/docs/api-contract.md`. Adapter testing curls: `TESTING-ADAPTERS.md`.
 
 ## Team Responsibilities
 
@@ -144,14 +147,16 @@ Full contract: `backend/docs/api-contract.md`.
 | **Varun** | Architecture, design patterns, integration, repository structure |
 | **George** | Tour-generation logic and design rationale |
 | **Thanh** | User-interface prototype (Figma → React) |
+| **Abdullah** | External data adapters & parsers (FMI weather & Digitraffic), adapter test endpoints, unit tests |
 
 The team collaborates on API research and overall system decisions.
 
-## Project Status (Midterm)
+## Project Status
 
 **Backend**
 - Skeleton is running: interfaces, models, HTTP client, facade (`TourService`), controller, places repository.
-- Weather (`FmiWeatherAdapter`) and traffic (`DigitrafficAdapter`) adapters are placeholders.
+- Weather (`FmiWeatherAdapter`) and traffic (`DigitrafficAdapter`) adapters are implemented with live API integration and dedicated parsers.
+- Test endpoints under `/api/test` allow direct testing of weather and traffic data.
 - Tour strategies are still being implemented.
 - Demo profile provides a complete sample response shape.
 
@@ -164,6 +169,7 @@ The team collaborates on API research and overall system decisions.
 
 ## Documentation
 
+- Adapter testing & curl commands: `TESTING-ADAPTERS.md`
 - Backend design & API: `backend/docs/`
 - Backend run instructions: `backend/README.md`
 - Frontend: `frontend/city-tour-ui/README.md` (default Vite template notes)
