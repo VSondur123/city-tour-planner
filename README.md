@@ -134,11 +134,8 @@ The UI currently uses mock data; it is prepared to call the backend (`CORS` alre
 | GET | `/api/cities` | List available cities |
 | GET | `/api/places?city=…&language=…` | Places of a city |
 | POST | `/api/tour` | Generate a tour |
-| GET | `/api/test/weather?city=…&date=…` | Direct FMI weather adapter test |
-| GET | `/api/test/traffic?city=…&language=…` | Direct Digitraffic adapter test |
-| GET | `/api/test/overview?city=…` | Combined adapter overview test |
 
-Full contract: `backend/docs/api-contract.md`. Adapter testing curls: `TESTING-ADAPTERS.md`.
+Full contract: `backend/docs/api-contract.md`.
 
 ## Team Responsibilities
 
@@ -147,7 +144,7 @@ Full contract: `backend/docs/api-contract.md`. Adapter testing curls: `TESTING-A
 | **Varun** | Architecture, design patterns, integration, repository structure |
 | **George** | Tour-generation logic and design rationale |
 | **Thanh** | User-interface prototype (Figma → React) |
-| **Abdullah** | External data adapters & parsers (FMI weather & Digitraffic), adapter test endpoints, unit tests |
+| **Abdullah** | External data adapters & parsers (FMI weather & Digitraffic), unit tests |
 
 The team collaborates on API research and overall system decisions.
 
@@ -156,7 +153,6 @@ The team collaborates on API research and overall system decisions.
 **Backend**
 - Skeleton is running: interfaces, models, HTTP client, facade (`TourService`), controller, places repository.
 - Weather (`FmiWeatherAdapter`) and traffic (`DigitrafficAdapter`) adapters are implemented with live API integration and dedicated parsers.
-- Test endpoints under `/api/test` allow direct testing of weather and traffic data.
 - Tour strategies are still being implemented.
 - Demo profile provides a complete sample response shape.
 
@@ -169,7 +165,6 @@ The team collaborates on API research and overall system decisions.
 
 ## Documentation
 
-- Adapter testing & curl commands: `TESTING-ADAPTERS.md`
 - Backend design & API: `backend/docs/`
 - Backend run instructions: `backend/README.md`
 - Frontend: `frontend/city-tour-ui/README.md` (default Vite template notes)
