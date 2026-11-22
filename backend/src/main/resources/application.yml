@@ -17,6 +17,11 @@ planner:
     allowed-origins:
       - http://localhost:5173
 
+  planning:
+    rain-threshold-mm: 0.5
+    walking-speed-kmh: 5.0
+    traffic-distance-meters: 200
+
   providers:
     fmi:
       base-url: https://opendata.fmi.fi
