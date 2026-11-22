@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +33,16 @@ public class DigitrafficAdapter implements TrafficProvider {
 
     @Override
     public List<TrafficAnnouncement> getAnnouncements(String city, Language preferredLanguage) {
+        return getAnnouncements(city, preferredLanguage, null, null);
+    }
+
+    @Override
+    public List<TrafficAnnouncement> getAnnouncements(
+            String city,
+            Language preferredLanguage,
+            OffsetDateTime windowStart,
+            OffsetDateTime windowEnd) {
+
         if (city == null || city.isBlank()) {
             return List.of();
         }
@@ -50,6 +61,6 @@ public class DigitrafficAdapter implements TrafficProvider {
             throw new ProviderException("Digitraffic", "Failed to retrieve announcements: " + exception.getMessage(), exception);
         }
 
-        return digitrafficAnnouncementParser.parse(response.body(), city, preferredLanguage);
+        return digitrafficAnnouncementParser.parse(response.body(), city, preferredLanguage, windowStart, windowEnd);
     }
 }

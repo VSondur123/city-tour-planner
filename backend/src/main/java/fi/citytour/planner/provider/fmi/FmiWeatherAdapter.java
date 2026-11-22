@@ -18,6 +18,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,10 +48,10 @@ public class FmiWeatherAdapter implements WeatherProvider {
         ZonedDateTime localEnd = date.plusDays(1).atStartOfDay(zone);
 
         String startUtc = DateTimeFormatter.ISO_INSTANT.format(
-                localStart.toInstant().truncatedTo(java.time.temporal.ChronoUnit.SECONDS)
+                localStart.toInstant().truncatedTo(ChronoUnit.SECONDS)
         );
         String endUtc = DateTimeFormatter.ISO_INSTANT.format(
-                localEnd.toInstant().truncatedTo(java.time.temporal.ChronoUnit.SECONDS)
+                localEnd.toInstant().truncatedTo(ChronoUnit.SECONDS)
         );
 
         Map<String, String> requestParameters = new LinkedHashMap<>();

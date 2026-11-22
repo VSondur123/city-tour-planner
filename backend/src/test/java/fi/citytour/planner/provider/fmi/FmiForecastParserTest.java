@@ -225,4 +225,109 @@ class FmiForecastParserTest {
                 .isInstanceOf(ProviderException.class)
                 .hasMessageContaining("Temperature field missing");
     }
+
+    @Test
+    void returnsNullForMissingOrNanValuesAndDropsMissingTemperatureRows() {
+        // Position 1 (18:00 UTC -> 20:00 local): Valid temperature, but wind, precip, cloud are NaN
+        // Position 2 (19:00 UTC -> 21:00 local): Missing/NaN temperature -> should be dropped
+        // Position 3 (20:00 UTC -> 22:00 local): Valid complete row
+        String xml = """
+                <wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0"
+                                       xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
+                                       xmlns:swe="http://www.opengis.net/swe/2.0"
+                                       xmlns:gml="http://www.opengis.net/gml/3.2">
+                    <wfs:member>
+                        <gmlcov:MultiPointCoverage>
+                            <gmlcov:rangeType>
+                                <swe:DataRecord>
+                                    <swe:field name="Temperature"/>
+                                    <swe:field name="WindSpeedMS"/>
+                                    <swe:field name="PrecipitationAmount"/>
+                                    <swe:field name="TotalCloudCover"/>
+                                </swe:DataRecord>
+                            </gmlcov:rangeType>
+                            <gml:rangeSet>
+                                <gml:DataBlock>
+                                    <gml:doubleOrNilReasonTupleList>
+                                        6.5 NaN NaN NaN
+                                        NaN 3.0 1.0 50.0
+                                        4.2 2.1 0.5 25.0
+                                    </gml:doubleOrNilReasonTupleList>
+                                </gml:DataBlock>
+                            </gml:rangeSet>
+                            <gmlcov:positions>
+                                61.49 23.78 1794852000
+                                61.49 23.78 1794855600
+                                61.49 23.78 1794859200
+                            </gmlcov:positions>
+                        </gmlcov:MultiPointCoverage>
+                    </wfs:member>
+                </wfs:FeatureCollection>
+                """;
+
+        List<HourlyForecast> forecasts = parser.parse(xml, testDate, zone);
+
+        // Row 2 is dropped, so only 2 rows returned
+        assertThat(forecasts).hasSize(2);
+
+        HourlyForecast row1 = forecasts.get(0);
+        assertThat(row1.time()).isEqualTo(OffsetDateTime.parse("2026-11-16T20:00:00+02:00"));
+        assertThat(row1.temperature()).isEqualTo(6.5);
+        assertThat(row1.wind()).isNull();
+        assertThat(row1.precipitationAmount()).isNull();
+        assertThat(row1.cloudCover()).isNull();
+
+        HourlyForecast row3 = forecasts.get(1);
+        assertThat(row3.time()).isEqualTo(OffsetDateTime.parse("2026-11-16T22:00:00+02:00"));
+        assertThat(row3.temperature()).isEqualTo(4.2);
+        assertThat(row3.wind()).isEqualTo(2.1);
+        assertThat(row3.precipitationAmount()).isEqualTo(0.5);
+        assertThat(row3.cloudCover()).isEqualTo(25.0);
+    }
+
+    @Test
+    void convertsCumulativePrecipitationToHourlyDifferences() {
+        // Consecutive rows with cumulative precipitation: 1.00, 3.50, 5.25, then reset to 0.50
+        String xml = """
+                <wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs/2.0"
+                                       xmlns:gmlcov="http://www.opengis.net/gmlcov/1.0"
+                                       xmlns:swe="http://www.opengis.net/swe/2.0"
+                                       xmlns:gml="http://www.opengis.net/gml/3.2">
+                    <wfs:member>
+                        <gmlcov:MultiPointCoverage>
+                            <gmlcov:rangeType>
+                                <swe:DataRecord>
+                                    <swe:field name="Temperature"/>
+                                    <swe:field name="PrecipitationAmount"/>
+                                </swe:DataRecord>
+                            </gmlcov:rangeType>
+                            <gml:rangeSet>
+                                <gml:DataBlock>
+                                    <gml:doubleOrNilReasonTupleList>
+                                        5.0 1.00
+                                        5.0 3.50
+                                        5.0 5.25
+                                        5.0 0.50
+                                    </gml:doubleOrNilReasonTupleList>
+                                </gml:DataBlock>
+                            </gml:rangeSet>
+                            <gmlcov:positions>
+                                61.49 23.78 1794852000
+                                61.49 23.78 1794855600
+                                61.49 23.78 1794859200
+                                61.49 23.78 1794862800
+                            </gmlcov:positions>
+                        </gmlcov:MultiPointCoverage>
+                    </wfs:member>
+                </wfs:FeatureCollection>
+                """;
+
+        List<HourlyForecast> forecasts = parser.parse(xml, testDate, zone);
+
+        assertThat(forecasts).hasSize(4);
+        assertThat(forecasts.get(0).precipitationAmount()).isEqualTo(1.00); // First row: 1.00
+        assertThat(forecasts.get(1).precipitationAmount()).isEqualTo(2.50); // 3.50 - 1.00 = 2.50
+        assertThat(forecasts.get(2).precipitationAmount()).isEqualTo(1.75); // 5.25 - 3.50 = 1.75
+        assertThat(forecasts.get(3).precipitationAmount()).isEqualTo(0.50); // Reset to 0.50
+    }
 }

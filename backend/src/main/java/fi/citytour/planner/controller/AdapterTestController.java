@@ -93,7 +93,7 @@ public class AdapterTestController {
     private Language parseLanguage(String langStr) {
         try {
             return Language.fromCode(langStr);
-        } catch (Exception e) {
+        } catch (fi.citytour.planner.model.common.UnsupportedLanguageException e) {
             return Language.EN;
         }
     }

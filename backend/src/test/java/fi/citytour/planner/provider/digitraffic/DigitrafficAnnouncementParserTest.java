@@ -234,4 +234,185 @@ class DigitrafficAnnouncementParserTest {
                 .hasMessageContaining("Failed to parse Digitraffic JSON")
                 .satisfies(e -> assertThat(((ProviderException) e).getSource()).isEqualTo("Digitraffic"));
     }
+
+    @Test
+    void matchesStrictlyOnMunicipalityAndExcludesIncidentsWithMereTextMention() {
+        // Feature 1: Mentions "Tampere" in title and location description, but municipality is "Nokia"
+        // Feature 2: Valid Tampere incident via secondaryPoint municipality
+        String json = """
+                {
+                  "features": [
+                    {
+                      "properties": {
+                        "announcements": [
+                          {
+                            "language": "fi",
+                            "title": "Tie 12 Tampereen rajalla, Nokia",
+                            "location": {
+                              "description": "Matkalla Tampereelta kohti Nokiaa"
+                            },
+                            "locationDetails": {
+                              "roadAddressLocation": {
+                                "primaryPoint": { "municipality": "Nokia" },
+                                "secondaryPoint": { "municipality": "Nokia" }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "properties": {
+                        "announcements": [
+                          {
+                            "language": "fi",
+                            "title": "Kyläsaarentie tietyö",
+                            "locationDetails": {
+                              "roadAddressLocation": {
+                                "primaryPoint": { "municipality": "Ylöjärvi" },
+                                "secondaryPoint": { "municipality": "Tampere" }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+                """;
+
+        List<TrafficAnnouncement> announcements = parser.parse(json, "tampere", Language.FI);
+
+        assertThat(announcements).hasSize(1);
+        assertThat(announcements.get(0).description()).isEqualTo("Kyläsaarentie tietyö");
+        assertThat(announcements.get(0).area()).isEqualTo("Tampere");
+    }
+
+    @Test
+    void filtersAnnouncementsAgainstTourTimeWindow() {
+        OffsetDateTime windowStart = OffsetDateTime.parse("2026-11-22T10:00:00Z");
+        OffsetDateTime windowEnd = OffsetDateTime.parse("2026-11-22T14:00:00Z");
+
+        // Event 1: Starts after window ends (future) -> excluded
+        // Event 2: Ended before window starts (stale) -> excluded
+        // Event 3: Started in past, no endTime (ongoing roadwork) -> included
+        // Event 4: Active during window (11:00 to 13:00) -> included
+        String json = """
+                {
+                  "features": [
+                    {
+                      "properties": {
+                        "announcements": [
+                          {
+                            "language": "fi",
+                            "title": "Future roadwork",
+                            "locationDetails": { "roadAddressLocation": { "primaryPoint": { "municipality": "Tampere" } } },
+                            "timeAndDuration": {
+                              "startTime": "2026-11-22T15:00:00Z",
+                              "endTime": "2026-11-22T18:00:00Z"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "properties": {
+                        "announcements": [
+                          {
+                            "language": "fi",
+                            "title": "Past morning accident",
+                            "locationDetails": { "roadAddressLocation": { "primaryPoint": { "municipality": "Tampere" } } },
+                            "timeAndDuration": {
+                              "startTime": "2026-11-22T06:00:00Z",
+                              "endTime": "2026-11-22T09:00:00Z"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "properties": {
+                        "announcements": [
+                          {
+                            "language": "fi",
+                            "title": "Ongoing tram roadwork",
+                            "locationDetails": { "roadAddressLocation": { "primaryPoint": { "municipality": "Tampere" } } },
+                            "timeAndDuration": {
+                              "startTime": "2026-06-01T04:00:00Z"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "properties": {
+                        "announcements": [
+                          {
+                            "language": "fi",
+                            "title": "Midday maintenance",
+                            "locationDetails": { "roadAddressLocation": { "primaryPoint": { "municipality": "Tampere" } } },
+                            "timeAndDuration": {
+                              "startTime": "2026-11-22T11:00:00Z",
+                              "endTime": "2026-11-22T13:00:00Z"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+                """;
+
+        List<TrafficAnnouncement> announcements = parser.parse(json, "tampere", Language.FI, windowStart, windowEnd);
+
+        assertThat(announcements).hasSize(2);
+        assertThat(announcements).extracting(TrafficAnnouncement::description)
+                .containsExactly("Ongoing tram roadwork", "Midday maintenance");
+    }
+
+    @Test
+    void selectsLanguageOnlyFromCityMatchingAnnouncements() {
+        // Feature with two announcements:
+        // - Announcement 1 (fi) is for Tampere
+        // - Announcement 2 (en) is for Helsinki (different municipality)
+        // When searching for Tampere with Language.EN preferred, it must NOT pick the English Helsinki announcement!
+        String json = """
+                {
+                  "features": [
+                    {
+                      "properties": {
+                        "announcements": [
+                          {
+                            "language": "fi",
+                            "title": "Itsenäisyydenkatu tietyö",
+                            "locationDetails": {
+                              "roadAddressLocation": {
+                                "primaryPoint": { "municipality": "Tampere" }
+                              }
+                            }
+                          },
+                          {
+                            "language": "en",
+                            "title": "Mannerheimintie roadwork",
+                            "locationDetails": {
+                              "roadAddressLocation": {
+                                "primaryPoint": { "municipality": "Helsinki" }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+                """;
+
+        List<TrafficAnnouncement> announcements = parser.parse(json, "tampere", Language.EN);
+
+        assertThat(announcements).hasSize(1);
+        TrafficAnnouncement announcement = announcements.get(0);
+        assertThat(announcement.description()).isEqualTo("Itsenäisyydenkatu tietyö");
+        assertThat(announcement.area()).isEqualTo("Tampere");
+        assertThat(announcement.language()).isEqualTo("fi");
+    }
 }

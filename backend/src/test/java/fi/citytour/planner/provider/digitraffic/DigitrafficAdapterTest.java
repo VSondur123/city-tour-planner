@@ -88,13 +88,45 @@ class DigitrafficAdapterTest {
                 )
         );
 
-        when(announcementParser.parse(sampleJson, "tampere", Language.FI))
+        when(announcementParser.parse(sampleJson, "tampere", Language.FI, null, null))
                 .thenReturn(expectedList);
 
         List<TrafficAnnouncement> result = adapter.getAnnouncements("tampere", Language.FI);
 
         assertThat(result).isSameAs(expectedList);
         verify(apiHttpClient).get(expectedUri);
+    }
+
+    @Test
+    void queriesDigitrafficWithTimeWindowAndDelegatesToParser() {
+        URI expectedUri = URI.create("https://tie.digitraffic.fi/api/traffic-message/v2/traffic-announcements");
+        when(apiRequestFactory.buildUri(eq(plannerProperties.getProviders().getDigitraffic()), eq(Map.of())))
+                .thenReturn(expectedUri);
+
+        String sampleJson = "{\"features\": []}";
+        when(apiHttpClient.get(expectedUri)).thenReturn(new ApiResponse(200, "application/json", sampleJson));
+
+        OffsetDateTime windowStart = OffsetDateTime.parse("2026-11-22T10:00:00Z");
+        OffsetDateTime windowEnd = OffsetDateTime.parse("2026-11-22T14:00:00Z");
+
+        List<TrafficAnnouncement> expectedList = List.of(
+                new TrafficAnnouncement(
+                        "Tie suljettu",
+                        "Itsenäisyydenkatu suljettu",
+                        "Tampere",
+                        "fi",
+                        windowStart,
+                        null,
+                        new GeoShape(List.of())
+                )
+        );
+
+        when(announcementParser.parse(sampleJson, "tampere", Language.FI, windowStart, windowEnd))
+                .thenReturn(expectedList);
+
+        List<TrafficAnnouncement> result = adapter.getAnnouncements("tampere", Language.FI, windowStart, windowEnd);
+
+        assertThat(result).isSameAs(expectedList);
     }
 
     @Test

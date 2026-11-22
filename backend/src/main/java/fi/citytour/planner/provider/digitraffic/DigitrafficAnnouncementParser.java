@@ -18,11 +18,10 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 /**
  * Parses Digitraffic traffic announcements JSON payloads and extracts announcements
- * relevant to a specific city/municipality.
+ * relevant to a specific city/municipality and optional tour time window.
  */
 @Component
 @RequiredArgsConstructor
@@ -40,6 +39,28 @@ public class DigitrafficAnnouncementParser {
      * @throws ProviderException if the payload is malformed
      */
     public List<TrafficAnnouncement> parse(String json, String targetCity, Language preferredLanguage) {
+        return parse(json, targetCity, preferredLanguage, null, null);
+    }
+
+    /**
+     * Parses the Digitraffic GeoJSON response and returns active announcements matching the city
+     * and overlapping with the requested tour time window.
+     *
+     * @param json              the response payload from Digitraffic
+     * @param targetCity        the city identifier/name to filter by
+     * @param preferredLanguage the language preference of the user
+     * @param windowStart       the start of the tour window, or null if no time filter
+     * @param windowEnd         the end of the tour window, or null if no time filter
+     * @return a list of parsed and filtered {@link TrafficAnnouncement} records
+     * @throws ProviderException if the payload is malformed
+     */
+    public List<TrafficAnnouncement> parse(
+            String json,
+            String targetCity,
+            Language preferredLanguage,
+            OffsetDateTime windowStart,
+            OffsetDateTime windowEnd) {
+
         if (json == null || json.isBlank() || targetCity == null || targetCity.isBlank()) {
             return List.of();
         }
@@ -70,16 +91,22 @@ public class DigitrafficAnnouncementParser {
                 continue;
             }
 
-            String area = extractArea(matchingAnnouncement, targetCity);
-            String language = matchingAnnouncement.path("language").asText(
-                    preferredLanguage != null ? preferredLanguage.code() : "fi"
-            );
-            String type = extractType(matchingAnnouncement, propertiesNode);
-            String description = extractDescription(matchingAnnouncement);
-
             JsonNode timeNode = matchingAnnouncement.path("timeAndDuration");
             OffsetDateTime startTime = parseOffsetDateTime(timeNode.path("startTime").asText(null));
             OffsetDateTime endTime = parseOffsetDateTime(timeNode.path("endTime").asText(null));
+
+            // Time-window filter: announcement must start before window end, and end after window start (or have no end time)
+            if (!isWithinTimeWindow(startTime, endTime, windowStart, windowEnd)) {
+                continue;
+            }
+
+            String area = extractArea(matchingAnnouncement, targetCity);
+            String rawLang = matchingAnnouncement.path("language").asText(
+                    preferredLanguage != null ? preferredLanguage.code() : "fi"
+            );
+            String language = rawLang != null ? rawLang.trim().toLowerCase(Locale.ROOT) : "fi";
+            String type = extractType(matchingAnnouncement, propertiesNode);
+            String description = extractDescription(matchingAnnouncement);
 
             GeoShape geometry = parseGeometry(featureNode.path("geometry"));
 
@@ -97,33 +124,41 @@ public class DigitrafficAnnouncementParser {
         return List.copyOf(announcements);
     }
 
+    /**
+     * Selects the language variant strictly from the announcements that matched the city.
+     */
     private JsonNode findMatchingAnnouncement(
             JsonNode announcementsArray,
             String targetCity,
             Language preferredLanguage) {
 
-        boolean matchesCity = false;
-        JsonNode preferredLangNode = null;
-        JsonNode fallbackNode = announcementsArray.get(0);
-
-        String preferredCode = preferredLanguage != null ? preferredLanguage.code() : null;
-
+        List<JsonNode> cityMatchingAnnouncements = new ArrayList<>();
         for (JsonNode annNode : announcementsArray) {
             if (matchesCity(annNode, targetCity)) {
-                matchesCity = true;
-            }
-            if (preferredCode != null && preferredCode.equalsIgnoreCase(annNode.path("language").asText())) {
-                preferredLangNode = annNode;
+                cityMatchingAnnouncements.add(annNode);
             }
         }
 
-        if (!matchesCity) {
+        if (cityMatchingAnnouncements.isEmpty()) {
             return null;
         }
 
-        return preferredLangNode != null ? preferredLangNode : fallbackNode;
+        String preferredCode = preferredLanguage != null ? preferredLanguage.code() : null;
+        if (preferredCode != null) {
+            for (JsonNode annNode : cityMatchingAnnouncements) {
+                if (preferredCode.equalsIgnoreCase(annNode.path("language").asText())) {
+                    return annNode;
+                }
+            }
+        }
+
+        return cityMatchingAnnouncements.get(0);
     }
 
+    /**
+     * Matches strictly against municipality fields (primaryPoint, secondaryPoint, and roadWorkPhases)
+     * to avoid false positives where road titles or general descriptions merely mention the city.
+     */
     private boolean matchesCity(JsonNode annNode, String targetCity) {
         JsonNode roadLocation = annNode.path("locationDetails").path("roadAddressLocation");
         String primaryMuni = roadLocation.path("primaryPoint").path("municipality").asText(null);
@@ -133,31 +168,86 @@ public class DigitrafficAnnouncementParser {
             return true;
         }
 
-        String title = annNode.path("title").asText("");
-        String locationDesc = annNode.path("location").path("description").asText("");
+        JsonNode phases = annNode.path("roadWorkPhases");
+        if (phases.isArray()) {
+            for (JsonNode phase : phases) {
+                JsonNode phaseLocation = phase.path("locationDetails").path("roadAddressLocation");
+                String phasePrimary = phaseLocation.path("primaryPoint").path("municipality").asText(null);
+                String phaseSecondary = phaseLocation.path("secondaryPoint").path("municipality").asText(null);
+                if (isCityMatch(phasePrimary, targetCity) || isCityMatch(phaseSecondary, targetCity)) {
+                    return true;
+                }
+            }
+        }
 
-        return containsCity(title, targetCity) || containsCity(locationDesc, targetCity);
+        return false;
     }
 
     private boolean isCityMatch(String candidate, String targetCity) {
         return candidate != null && candidate.trim().equalsIgnoreCase(targetCity.trim());
     }
 
-    private boolean containsCity(String text, String targetCity) {
-        if (text == null || text.isBlank()) {
-            return false;
+    /**
+     * Checks whether an announcement overlaps with the requested tour time window.
+     * <p>
+     * Rationale:
+     * Digitraffic long-term roadworks and maintenance notices often carry an initial start date
+     * and either a future end date or no end date at all (ongoing indefinitely until updated).
+     * To ensure only relevant events are displayed:
+     * <ul>
+     *   <li>The announcement must begin before the tour window ends (start < windowEnd, or null).
+     *       This excludes future events that have not yet occurred.</li>
+     *   <li>The announcement must end after the tour window begins (end > windowStart), or have no
+     *       end time (null), indicating ongoing roadworks active during the tour.
+     *       This excludes stale events that completed before the tour.</li>
+     * </ul>
+     */
+    private boolean isWithinTimeWindow(
+            OffsetDateTime startTime,
+            OffsetDateTime endTime,
+            OffsetDateTime windowStart,
+            OffsetDateTime windowEnd) {
+
+        if (windowStart == null || windowEnd == null) {
+            return true;
         }
-        String pattern = "(?i).*\\b" + Pattern.quote(targetCity.trim()) + "\\b.*";
-        return text.matches(pattern);
+
+        boolean startsBeforeWindowEnds = startTime == null || startTime.isBefore(windowEnd);
+        boolean endsAfterWindowStarts = endTime == null || endTime.isAfter(windowStart);
+
+        return startsBeforeWindowEnds && endsAfterWindowStarts;
     }
 
     private String extractArea(JsonNode annNode, String fallbackCity) {
         JsonNode roadLocation = annNode.path("locationDetails").path("roadAddressLocation");
         String primaryMuni = roadLocation.path("primaryPoint").path("municipality").asText(null);
+        String secondaryMuni = roadLocation.path("secondaryPoint").path("municipality").asText(null);
+
+        if (isCityMatch(primaryMuni, fallbackCity)) {
+            return primaryMuni.trim();
+        }
+        if (isCityMatch(secondaryMuni, fallbackCity)) {
+            return secondaryMuni.trim();
+        }
+
+        JsonNode phases = annNode.path("roadWorkPhases");
+        if (phases.isArray()) {
+            for (JsonNode phase : phases) {
+                JsonNode phaseLocation = phase.path("locationDetails").path("roadAddressLocation");
+                String phasePrimary = phaseLocation.path("primaryPoint").path("municipality").asText(null);
+                String phaseSecondary = phaseLocation.path("secondaryPoint").path("municipality").asText(null);
+                if (isCityMatch(phasePrimary, fallbackCity)) {
+                    return phasePrimary.trim();
+                }
+                if (isCityMatch(phaseSecondary, fallbackCity)) {
+                    return phaseSecondary.trim();
+                }
+            }
+        }
+
         if (primaryMuni != null && !primaryMuni.isBlank()) {
             return primaryMuni.trim();
         }
-        String secondaryMuni = roadLocation.path("secondaryPoint").path("municipality").asText(null);
         if (secondaryMuni != null && !secondaryMuni.isBlank()) {
             return secondaryMuni.trim();
         }

@@ -96,59 +96,44 @@ public class FmiForecastParser {
                 continue;
             }
 
+            int rowOffset = r * numFields;
+
+            // Temperature is mandatory for a valid forecast row; drop row if missing/NaN
+            Double temp = readDouble(tupleTokens, rowOffset, tempIndex);
+            if (temp == null || temp.isNaN()) {
+                continue;
+            }
+
+            // FMI Harmonine PrecipitationAmount is cumulative across the model run.
+            // Convert to per-hour precipitation by taking the difference from the previous row.
+            Double currentPrecip = readDouble(tupleTokens, rowOffset, precipIndex);
+            Double hourlyPrecip = null;
+            if (currentPrecip != null && !currentPrecip.isNaN()) {
+                if (r == 0) {
+                    hourlyPrecip = Math.max(0.0, currentPrecip);
+                } else {
+                    Double prevPrecip = readDouble(tupleTokens, (r - 1) * numFields, precipIndex);
+                    if (prevPrecip == null || prevPrecip.isNaN() || currentPrecip < prevPrecip) {
+                        hourlyPrecip = Math.max(0.0, currentPrecip);
+                    } else {
+                        hourlyPrecip = Math.max(0.0, currentPrecip - prevPrecip);
+                    }
+                }
+            }
+
+            // Cloud cover and wind return null if missing/NaN (not 0.0)
+            Double cloud = readDouble(tupleTokens, rowOffset, cloudIndex);
+            Double wind = readDouble(tupleTokens, rowOffset, windIndex);
+
             OffsetDateTime time = Instant.ofEpochSecond(epochSeconds).atZone(zone).toOffsetDateTime();
             if (!time.toLocalDate().equals(targetDate)) {
                 continue;
             }
 
-            int rowOffset = r * numFields;
-            String tempToken = tupleTokens[rowOffset + tempIndex];
-            if (isMissingOrNan(tempToken)) {
-                continue;
-            }
-
-            Double temp = parseDouble(tempToken);
-            if (temp == null || temp.isNaN()) {
-                continue;
-            }
-
-            Double precip = 0.0;
-            if (precipIndex != null) {
-                String precipToken = tupleTokens[rowOffset + precipIndex];
-                if (!isMissingOrNan(precipToken)) {
-                    Double parsed = parseDouble(precipToken);
-                    if (parsed != null && !parsed.isNaN()) {
-                        precip = parsed;
-                    }
-                }
-            }
-
-            Double cloud = 0.0;
-            if (cloudIndex != null) {
-                String cloudToken = tupleTokens[rowOffset + cloudIndex];
-                if (!isMissingOrNan(cloudToken)) {
-                    Double parsed = parseDouble(cloudToken);
-                    if (parsed != null && !parsed.isNaN()) {
-                        cloud = parsed;
-                    }
-                }
-            }
-
-            Double wind = 0.0;
-            if (windIndex != null) {
-                String windToken = tupleTokens[rowOffset + windIndex];
-                if (!isMissingOrNan(windToken)) {
-                    Double parsed = parseDouble(windToken);
-                    if (parsed != null && !parsed.isNaN()) {
-                        wind = parsed;
-                    }
-                }
-            }
-
             result.add(new HourlyForecast(
                     time,
                     round2(temp),
-                    round2(precip),
+                    round2(hourlyPrecip),
                     round2(cloud),
                     round2(wind)
             ));
@@ -208,6 +193,35 @@ public class FmiForecastParser {
         return indices;
     }
 
+    /**
+     * Reads and parses a numeric value from the tuple tokens, or returns defaultValue if missing, NaN, or out of range.
+     */
+    private Double readOrDefault(String[] tupleTokens, int rowOffset, Integer fieldIndex, Double defaultValue) {
+        if (fieldIndex == null) {
+            return defaultValue;
+        }
+        int index = rowOffset + fieldIndex;
+        if (index >= tupleTokens.length) {
+            return defaultValue;
+        }
+        String token = tupleTokens[index];
+        if (isMissingOrNan(token)) {
+            return defaultValue;
+        }
+        try {
+            return Double.parseDouble(token);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Reads and parses a numeric value from the tuple tokens, or returns null if missing, NaN, or out of range.
+     */
+    private Double readDouble(String[] tupleTokens, int rowOffset, Integer fieldIndex) {
+        return readOrDefault(tupleTokens, rowOffset, fieldIndex, null);
+    }
+
     private boolean isMissingOrNan(String value) {
         if (value == null || value.isBlank()) {
             return true;
@@ -216,17 +230,9 @@ public class FmiForecastParser {
         return lower.equals("nan") || lower.equals("nil") || lower.equals("missing");
     }
 
-    private Double parseDouble(String value) {
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
     private Double round2(Double value) {
         if (value == null || Double.isNaN(value) || Double.isInfinite(value)) {
-            return 0.0;
+            return null;
         }
         return Math.round(value * 100.0) / 100.0;
     }

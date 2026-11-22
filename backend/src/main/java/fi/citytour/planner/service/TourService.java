@@ -1,5 +1,6 @@
 package fi.citytour.planner.service;
 
+import fi.citytour.planner.config.PlannerProperties;
 import fi.citytour.planner.model.common.Language;
 import fi.citytour.planner.model.place.City;
 import fi.citytour.planner.model.place.Place;
@@ -21,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -38,6 +41,7 @@ public class TourService {
     private final TrafficProvider trafficProvider;
     private final PlaceRepository placeRepository;
     private final TourStrategyFactory tourStrategyFactory;
+    private final PlannerProperties plannerProperties;
 
     /** Generates a tour for a request. */
     public TourResult generateTour(TourRequest request) {
@@ -49,9 +53,18 @@ public class TourService {
                 "weather",
                 () -> weatherProvider.getForecast(city.id(), request.date()));
 
+        ZoneId zone = plannerProperties != null && plannerProperties.getZone() != null
+                ? ZoneId.of(plannerProperties.getZone())
+                : ZoneId.of("Europe/Helsinki");
+        OffsetDateTime windowStart = request.date()
+                .atTime(request.startTime())
+                .atZone(zone)
+                .toOffsetDateTime();
+        OffsetDateTime windowEnd = windowStart.plusHours(request.durationHours());
+
         Fetched<TrafficAnnouncement> traffic = fetch(
                 "traffic",
-                () -> trafficProvider.getAnnouncements(city.id(), language));
+                () -> trafficProvider.getAnnouncements(city.id(), language, windowStart, windowEnd));
 
         List<HourlyForecast> plannerForecast =
                 request.factors().contains(Factor.WEATHER)
