@@ -1,5 +1,6 @@
 package fi.citytour.planner.demo;
 
+import fi.citytour.planner.config.PlannerProperties;
 import fi.citytour.planner.model.common.Language;
 import fi.citytour.planner.model.place.Place;
 import fi.citytour.planner.model.tour.Stop;
@@ -27,8 +28,9 @@ public class DemoTourStrategyFactory extends TourStrategyFactory {
     public DemoTourStrategyFactory(
             GeneralTourStrategy generalStrategy,
             IndoorTourStrategy indoorStrategy,
+            PlannerProperties properties,
             DemoData data) {
-        super(generalStrategy, indoorStrategy);
+        super(generalStrategy, indoorStrategy, properties);
         this.data = data;
     }
 
