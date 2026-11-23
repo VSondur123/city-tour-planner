@@ -87,6 +87,7 @@ export default function WeatherChart({ data = [] }) {
 
             <YAxis
               yAxisId="temp"
+               orientation="left"
               tick={{ fontSize: 11 }}
               tickFormatter={(value) => `${value}°`}
               width={45}
