@@ -1,13 +1,14 @@
 package fi.citytour.planner.demo;
 
+import fi.citytour.planner.config.PlannerProperties;
 import fi.citytour.planner.model.common.Language;
 import fi.citytour.planner.model.place.Place;
-import fi.citytour.planner.model.tour.Factor;
 import fi.citytour.planner.model.tour.Stop;
 import fi.citytour.planner.model.tour.TourRequest;
 import fi.citytour.planner.model.traffic.TrafficAnnouncement;
 import fi.citytour.planner.model.weather.HourlyForecast;
 import fi.citytour.planner.planning.GeneralTourStrategy;
+import fi.citytour.planner.planning.IndoorTourStrategy;
 import fi.citytour.planner.planning.TourStrategy;
 import fi.citytour.planner.planning.TourStrategyFactory;
 import org.springframework.context.annotation.Primary;
@@ -15,7 +16,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Set;
 
 /** Demo replacement for the strategy factory: always returns the fixed stops. */
 @Component
@@ -25,13 +25,17 @@ public class DemoTourStrategyFactory extends TourStrategyFactory {
 
     private final DemoData data;
 
-    public DemoTourStrategyFactory(GeneralTourStrategy generalStrategy, DemoData data) {
-        super(generalStrategy);
+    public DemoTourStrategyFactory(
+            GeneralTourStrategy generalStrategy,
+            IndoorTourStrategy indoorStrategy,
+            PlannerProperties properties,
+            DemoData data) {
+        super(generalStrategy, indoorStrategy, properties);
         this.data = data;
     }
 
     @Override
-    public TourStrategy choose(List<HourlyForecast> forecast, Set<Factor> factors) {
+    public TourStrategy choose(List<HourlyForecast> forecast, TourRequest request) {
         return new TourStrategy() {
             @Override
             public List<Stop> plan(
