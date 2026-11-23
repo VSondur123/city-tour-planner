@@ -11,6 +11,7 @@ package "Backend (Spring Boot service)" {
   [TourController] <<Controller>>
   [TourService] <<Facade>>
   [Tour Strategies] <<Strategy>>
+  [NearestPlaceTourPlanner]
   [Model] <<Model>>
   [FmiWeatherAdapter] <<Adapter>>
   [DigitrafficAdapter] <<Adapter>>
@@ -24,6 +25,7 @@ database "places.json" as JSON
 [React UI] --> [TourController] : HTTP / JSON
 [TourController] --> [TourService]
 [TourService] --> [Tour Strategies]
+[Tour Strategies] --> [NearestPlaceTourPlanner]
 [TourService] --> [FmiWeatherAdapter]
 [TourService] --> [DigitrafficAdapter]
 [TourService] --> [JsonPlaceRepository]

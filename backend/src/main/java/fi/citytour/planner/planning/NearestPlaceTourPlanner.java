@@ -33,12 +33,14 @@ public class NearestPlaceTourPlanner {
 
     private final double walkingSpeedKmh;
     private final double trafficDistanceMeters;
+    private final int maxOpenEndedAgeDays;
     private final ZoneId zone;
 
     /** Creates the planner with the settings from the configuration. */
     public NearestPlaceTourPlanner(PlannerProperties properties) {
         this.walkingSpeedKmh = properties.getPlanning().getWalkingSpeedKmh();
         this.trafficDistanceMeters = properties.getPlanning().getTrafficDistanceMeters();
+        this.maxOpenEndedAgeDays = properties.getPlanning().getMaxOpenEndedAgeDays();
         this.zone = ZoneId.of(properties.getZone());
     }
 
@@ -63,7 +65,7 @@ public class NearestPlaceTourPlanner {
                 .toList());
 
         // Which announcements are near each place (checked once, not on every step)
-        Map<Place, List<TrafficAnnouncement>> nearby = nearbyAnnouncements(remaining, announcements);
+        Map<Place, List<TrafficAnnouncement>> nearby = nearbyAnnouncements(remaining, announcements, tourStart);
 
         // First stop: a random place that is not blocked at the tour start
         List<Place> startable = remaining.stream()
@@ -169,14 +171,19 @@ public class NearestPlaceTourPlanner {
         return false;
     }
 
-    /** Finds, for each place, the announcements located near it. */
+    /**
+     * Finds, for each place, the announcements located near it. Announcements that never end
+     * and started long before the tour are ignored (see {@link #isStaleOpenEnded}).
+     */
     private Map<Place, List<TrafficAnnouncement>> nearbyAnnouncements(
             List<Place> places,
-            List<TrafficAnnouncement> announcements) {
+            List<TrafficAnnouncement> announcements,
+            ZonedDateTime tourStart) {
 
         Map<Place, List<TrafficAnnouncement>> result = new HashMap<>();
         for (Place place : places) {
             List<TrafficAnnouncement> near = announcements.stream()
+                    .filter(announcement -> !isStaleOpenEnded(announcement, tourStart))
                     .filter(announcement -> isNear(place, announcement.geometry()))
                     .toList();
             if (!near.isEmpty()) {
@@ -184,6 +191,19 @@ public class NearestPlaceTourPlanner {
             }
         }
         return result;
+    }
+
+    /**
+     * True for an announcement with no end time that started more than the configured number of
+     * days before the tour. Digitraffic keeps such notices "ongoing" until someone updates them,
+     * so an old one is more likely forgotten than real. It is still shown to the user. An
+     * announcement without a start time cannot be aged and is kept.
+     */
+    private boolean isStaleOpenEnded(TrafficAnnouncement announcement, ZonedDateTime tourStart) {
+        return announcement.endTime() == null
+                && announcement.startTime() != null
+                && announcement.startTime().toInstant()
+                        .isBefore(tourStart.minusDays(maxOpenEndedAgeDays).toInstant());
     }
 
     /** True if the place is within the configured distance of any path of the shape. */

@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -46,6 +47,11 @@ public class TourService {
     /** Generates a tour for a request. */
     public TourResult generateTour(TourRequest request) {
 
+        ZoneId zone = ZoneId.of(plannerProperties.getZone());
+        if (request.date().isBefore(LocalDate.now(zone))) {
+            throw new PastDateException();
+        }
+
         City city = requireCity(request.city());
         Language language = request.language();
 
@@ -53,9 +59,6 @@ public class TourService {
                 "weather",
                 () -> weatherProvider.getForecast(city.id(), request.date()));
 
-        ZoneId zone = plannerProperties != null && plannerProperties.getZone() != null
-                ? ZoneId.of(plannerProperties.getZone())
-                : ZoneId.of("Europe/Helsinki");
         OffsetDateTime windowStart = request.date()
                 .atTime(request.startTime())
                 .atZone(zone)

@@ -100,5 +100,371 @@
         "fi": "https://visittampere.fi/kayntikohde/pyynikin-luontopolku/"
       }
     }
+  ],
+  "Helsinki": [
+    {
+      "id": "hel-001",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Suomenlinna Sea Fortress",
+        "fi": "Suomenlinnan merilinnoitus"
+      },
+      "category": "LANDMARK",
+      "indoor": false,
+      "lat": 60.1466,
+      "lon": 24.9886,
+      "visitMinutes": 120,
+      "link": {
+        "en": "https://www.suomenlinna.fi/en/",
+        "fi": null
+      }
+    },
+    {
+      "id": "hel-002",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Helsinki Cathedral",
+        "fi": "Helsingin tuomiokirkko"
+      },
+      "category": "LANDMARK",
+      "indoor": true,
+      "lat": 60.17,
+      "lon": 24.9522,
+      "visitMinutes": 30,
+      "link": {
+        "en": "https://www.myhelsinki.fi/visit-helsinki/things-to-do/attractions/",
+        "fi": null
+      }
+    },
+    {
+      "id": "hel-003",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Temppeliaukio Church",
+        "fi": "Temppeliaukion kirkko"
+      },
+      "category": "LANDMARK",
+      "indoor": true,
+      "lat": 60.173,
+      "lon": 24.925,
+      "visitMinutes": 30,
+      "link": {
+        "en": "https://www.myhelsinki.fi/visit-helsinki/things-to-do/attractions/",
+        "fi": null
+      }
+    },
+    {
+      "id": "hel-004",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Sibelius Monument",
+        "fi": "Sibelius-monumentti"
+      },
+      "category": "LANDMARK",
+      "indoor": false,
+      "lat": 60.1825,
+      "lon": 24.913,
+      "visitMinutes": 25,
+      "link": {
+        "en": "https://www.myhelsinki.fi/visit-helsinki/things-to-do/attractions/",
+        "fi": null
+      }
+    },
+    {
+      "id": "hel-005",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Oodi Helsinki Central Library",
+        "fi": "Helsingin keskustakirjasto Oodi"
+      },
+      "category": "LANDMARK",
+      "indoor": true,
+      "lat": 60.173,
+      "lon": 24.9385,
+      "visitMinutes": 45,
+      "link": {
+        "en": "https://www.oodihelsinki.fi/en/",
+        "fi": null
+      }
+    },
+    {
+      "id": "hel-006",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Ateneum Art Museum",
+        "fi": "Ateneumin taidemuseo"
+      },
+      "category": "MUSEUM",
+      "indoor": true,
+      "lat": 60.17,
+      "lon": 24.944,
+      "visitMinutes": 90,
+      "link": {
+        "en": "https://ateneum.fi/en/",
+        "fi": null
+      }
+    }
+  ],
+  "Vaasa": [
+    {
+      "id": "vaa-001",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Ostrobothnian Museum",
+        "fi": "Pohjanmaan museo"
+      },
+      "category": "MUSEUM",
+      "indoor": true,
+      "lat": 63.0965,
+      "lon": 21.608,
+      "visitMinutes": 75,
+      "link": {
+        "en": "https://www.vaasa.fi/en/see-and-experience/culture-in-vaasa-and-vaasa-region/museums-of-vaasa/",
+        "fi": null
+      }
+    },
+    {
+      "id": "vaa-002",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Kuntsi Museum of Modern Art",
+        "fi": "Kuntsin modernin taiteen museo"
+      },
+      "category": "MUSEUM",
+      "indoor": true,
+      "lat": 63.0945,
+      "lon": 21.6085,
+      "visitMinutes": 60,
+      "link": {
+        "en": "https://www.vaasa.fi/en/see-and-experience/culture-in-vaasa-and-vaasa-region/museums-of-vaasa/",
+        "fi": null
+      }
+    },
+    {
+      "id": "vaa-003",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Tikanoja Art Museum",
+        "fi": "Tikanojan taidekoti"
+      },
+      "category": "MUSEUM",
+      "indoor": true,
+      "lat": 63.095,
+      "lon": 21.615,
+      "visitMinutes": 60,
+      "link": {
+        "en": "https://www.vaasa.fi/en/see-and-experience/culture-in-vaasa-and-vaasa-region/museums-of-vaasa/",
+        "fi": null
+      }
+    },
+    {
+      "id": "vaa-004",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Old Vaasa",
+        "fi": "Vanha Vaasa"
+      },
+      "category": "LANDMARK",
+      "indoor": false,
+      "lat": 63.054,
+      "lon": 21.665,
+      "visitMinutes": 60,
+      "link": {
+        "en": "https://www.vaasa.fi/en/see-and-experience/sights-and-attractions/",
+        "fi": null
+      }
+    },
+    {
+      "id": "vaa-005",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Öjen Nature Trail",
+        "fi": "Öjenin luontopolku"
+      },
+      "category": "NATURE",
+      "indoor": false,
+      "lat": 63.07,
+      "lon": 21.555,
+      "visitMinutes": 90,
+      "link": {
+        "en": "https://www.vaasa.fi/en/living/freetime/naturevaasa/attractions/",
+        "fi": null
+      }
+    },
+    {
+      "id": "vaa-006",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Kvarken Archipelago",
+        "fi": "Merenkurkun saaristo"
+      },
+      "category": "NATURE",
+      "indoor": false,
+      "lat": 63.35,
+      "lon": 21.3,
+      "visitMinutes": 180,
+      "link": {
+        "en": "https://www.vaasa.fi/en/see-and-experience/sights-and-attractions/",
+        "fi": null
+      }
+    }
+  ],
+  "Oulu": [
+    {
+      "id": "oul-001",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Oulu Market Square",
+        "fi": "Oulun kauppatori"
+      },
+      "category": "LANDMARK",
+      "indoor": false,
+      "lat": 65.014,
+      "lon": 25.466,
+      "visitMinutes": 30,
+      "link": {
+        "en": "https://visitoulu.fi/en/see-and-do/",
+        "fi": null
+      }
+    },
+    {
+      "id": "oul-002",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Oulu Cathedral",
+        "fi": "Oulun tuomiokirkko"
+      },
+      "category": "LANDMARK",
+      "indoor": true,
+      "lat": 65.012,
+      "lon": 25.475,
+      "visitMinutes": 30,
+      "link": {
+        "en": "https://visitoulu.fi/en/see-and-do/",
+        "fi": null
+      }
+    },
+    {
+      "id": "oul-003",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Hupisaaret Islands City Park",
+        "fi": "Hupisaarten kaupunginpuisto"
+      },
+      "category": "NATURE",
+      "indoor": false,
+      "lat": 65.016,
+      "lon": 25.477,
+      "visitMinutes": 60,
+      "link": {
+        "en": "https://visitoulu.fi/en/see-and-do/",
+        "fi": null
+      }
+    },
+    {
+      "id": "oul-004",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Nallikari Beach",
+        "fi": "Nallikarin uimaranta"
+      },
+      "category": "NATURE",
+      "indoor": false,
+      "lat": 65.035,
+      "lon": 25.414,
+      "visitMinutes": 60,
+      "link": {
+        "en": "https://visitoulu.fi/en/see-and-do/",
+        "fi": null
+      }
+    },
+    {
+      "id": "oul-005",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Pikisaari Island",
+        "fi": "Pikisaari"
+      },
+      "category": "LANDMARK",
+      "indoor": false,
+      "lat": 65.012,
+      "lon": 25.463,
+      "visitMinutes": 45,
+      "link": {
+        "en": "https://visitoulu.fi/en/see-and-do/",
+        "fi": null
+      }
+    },
+    {
+      "id": "oul-006",
+      "sourceIds": {
+        "en": null,
+        "fi": null
+      },
+      "name": {
+        "en": "Oulu Art Museum",
+        "fi": "Oulun taidemuseo"
+      },
+      "category": "MUSEUM",
+      "indoor": true,
+      "lat": 65.0145,
+      "lon": 25.478,
+      "visitMinutes": 75,
+      "link": {
+        "en": "https://www.ouka.fi/en/visitors",
+        "fi": null
+      }
+    }
   ]
 }

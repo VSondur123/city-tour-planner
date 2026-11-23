@@ -185,6 +185,44 @@ class NearestPlaceTourPlannerTrafficTest {
     }
 
     @Test
+    void anOpenEndedAnnouncementOlderThanTheLimitIsIgnored() {
+        long baseline = toursWithX(tours(NearestPlaceTourPlannerTrafficTest::none));
+
+        // 100 metres from X, started 60 days ago, never ends: older than the default 30 days.
+        List<List<Stop>> tours = tours(date -> List.of(
+                announcement(at(date.minusDays(60), 8, 0), null, X_LAT + 0.0009, X_LON)));
+
+        assertThat(toursWithX(tours)).isEqualTo(baseline);
+    }
+
+    @Test
+    void anOpenEndedAnnouncementWithinTheLimitStillBlocks() {
+        List<List<Stop>> tours = tours(date -> List.of(
+                announcement(at(date.minusDays(10), 8, 0), null, X_LAT + 0.0009, X_LON)));
+
+        assertThat(toursWithX(tours)).isZero();
+    }
+
+    @Test
+    void theConfiguredAgeLimitIsUsed() {
+        NearestPlaceTourPlanner patient = planner(planning -> planning.setMaxOpenEndedAgeDays(90));
+
+        // 60 days old is within a 90 day limit, so it blocks.
+        List<List<Stop>> tours = tours(patient, date -> List.of(
+                announcement(at(date.minusDays(60), 8, 0), null, X_LAT + 0.0009, X_LON)));
+
+        assertThat(toursWithX(tours)).isZero();
+    }
+
+    @Test
+    void anOpenEndedAnnouncementWithoutAStartTimeStillBlocks() {
+        List<List<Stop>> tours = tours(date -> List.of(
+                announcement(null, null, X_LAT + 0.0009, X_LON)));
+
+        assertThat(toursWithX(tours)).isZero();
+    }
+
+    @Test
     void theTourIsEmptyWhenEveryPlaceIsBlockedAtTheStart() {
         List<TrafficAnnouncement> everywhere = new ArrayList<>();
         for (Place place : PLACES) {

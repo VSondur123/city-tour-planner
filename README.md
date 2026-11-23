@@ -64,8 +64,7 @@ Design documentation (class diagrams, sequence diagrams, API contract, component
 │   ├── docs/                 # Design docs, API contract, samples, self-evaluation
 │   ├── src/main/java/...     # Controllers, services, adapters, models, repository
 │   ├── src/main/resources/
-│   │   ├── data/places.json
-│   │   └── demo/             # Demo profile data
+│   │   └── data/places.json
 │   └── README.md             # Backend run instructions
 └── frontend/
     └── city-tour-ui/         # React + Vite application
@@ -97,21 +96,15 @@ Smoke test:
 
 ```bash
 curl http://localhost:8080/api/cities
-# → [{"id":"tampere","name":"Tampere"}]
+# → [{"id":"tampere","name":"Tampere"},{"id":"helsinki","name":"Helsinki"},{"id":"vaasa","name":"Vaasa"},{"id":"oulu","name":"Oulu"}]
 ```
 
-**Demo profile** (uses fixed sample data while adapters/strategies are unfinished):
-
-```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=demo
-```
-
-Then:
+Plan a tour (FMI forecasts reach about two days ahead, so use a date within the next two days):
 
 ```bash
 curl -X POST http://localhost:8080/api/tour \
   -H "Content-Type: application/json" \
-  -d '{"city":"tampere","date":"2026-11-03","startTime":"13:00","durationHours":4,"language":"en","factors":["WEATHER","TRAFFIC"]}'
+  -d '{"city":"tampere","date":"<YYYY-MM-DD>","startTime":"13:00","durationHours":4,"language":"en","factors":["WEATHER","TRAFFIC"]}'
 ```
 
 See `backend/README.md` and `backend/docs/api-contract.md` for full details.
@@ -153,8 +146,8 @@ The team collaborates on API research and overall system decisions.
 **Backend**
 - Skeleton is running: interfaces, models, HTTP client, facade (`TourService`), controller, places repository.
 - Weather (`FmiWeatherAdapter`) and traffic (`DigitrafficAdapter`) adapters are implemented with live API integration and dedicated parsers.
-- Tour strategies are still being implemented.
-- Demo profile provides a complete sample response shape.
+- Tour strategies (`GeneralTourStrategy`, `IndoorTourStrategy`, `TourStrategyFactory`) are implemented; the stops are built by `NearestPlaceTourPlanner`, and the rain threshold, walking speed and traffic distance are set in `application.yml` under `planner.planning`.
+- Places are available for Tampere, Helsinki, Vaasa and Oulu.
 
 **Frontend**
 - Planning form, map (Leaflet), weather chart, traffic panel, stop list and layer toggles are implemented.

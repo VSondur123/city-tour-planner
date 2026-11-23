@@ -1,5 +1,6 @@
 package fi.citytour.planner.service;
 
+import fi.citytour.planner.config.PlannerProperties;
 import fi.citytour.planner.model.common.Language;
 import fi.citytour.planner.model.common.LocalizedText;
 import fi.citytour.planner.model.place.City;
@@ -30,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 
@@ -44,7 +46,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class TourServiceTest {
 
-    private static final LocalDate DATE = LocalDate.of(2026, 11, 21);
+    private static final ZoneId ZONE = ZoneId.of("Europe/Helsinki");
+    /** Tomorrow, so the request is never in the past whatever the time zone of the machine. */
+    private static final LocalDate DATE = LocalDate.now(ZONE).plusDays(1);
 
     private static final Place PLACE = new Place(
             "p1",
@@ -79,7 +83,7 @@ class TourServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TourService(weatherProvider, trafficProvider, placeRepository, strategyFactory);
+        service = new TourService(weatherProvider, trafficProvider, placeRepository, strategyFactory, new PlannerProperties());
     }
 
     private TourRequest request(String city, Language language, Set<Factor> factors) {
@@ -99,6 +103,42 @@ class TourServiceTest {
     }
 
     @Test
+    void rejectsADateBeforeTodayWithoutCallingProviders() {
+        TourRequest yesterday = new TourRequest(
+                "tampere", LocalDate.now(ZONE).minusDays(1), LocalTime.of(10, 0), 4, null, null);
+
+        assertThatThrownBy(() -> service.generateTour(yesterday))
+                .isInstanceOf(PastDateException.class);
+
+        verifyNoInteractions(weatherProvider, trafficProvider);
+    }
+
+    @Test
+    void acceptsToday() {
+        givenTampereWithOneStop();
+        when(weatherProvider.getForecast(eq("tampere"), any())).thenReturn(List.of());
+        when(trafficProvider.getAnnouncements(eq("tampere"), any(), any(), any())).thenReturn(List.of());
+        TourRequest today = new TourRequest(
+                "tampere", LocalDate.now(ZONE), LocalTime.of(23, 0), 1, null, null);
+
+        assertThat(service.generateTour(today).stops()).hasSize(1);
+    }
+
+    @Test
+    void aDateBeyondTheForecastRangeStillGivesATourWithoutWeather() {
+        givenTampereWithOneStop();
+        LocalDate far = LocalDate.now(ZONE).plusDays(30);
+        when(weatherProvider.getForecast("tampere", far)).thenReturn(List.of());
+        when(trafficProvider.getAnnouncements(eq("tampere"), any(), any(), any())).thenReturn(List.of());
+        TourRequest request = new TourRequest("tampere", far, LocalTime.of(10, 0), 4, null, null);
+
+        TourResult result = service.generateTour(request);
+
+        assertThat(result.weatherStatus()).isEqualTo(DataStatus.EMPTY);
+        assertThat(result.stops()).hasSize(1);
+    }
+
+    @Test
     void failsForAnUnknownCityWithoutCallingProviders() {
         when(placeRepository.findCities()).thenReturn(List.of(new City("tampere", "Tampere")));
 
@@ -112,7 +152,7 @@ class TourServiceTest {
     void findsTheCityIgnoringCaseAndCallsProvidersWithItsId() {
         givenTampereWithOneStop();
         when(weatherProvider.getForecast("tampere", DATE)).thenReturn(List.of(FORECAST));
-        when(trafficProvider.getAnnouncements("tampere", Language.EN)).thenReturn(List.of(ANNOUNCEMENT));
+        when(trafficProvider.getAnnouncements(eq("tampere"), eq(Language.EN), any(), any())).thenReturn(List.of(ANNOUNCEMENT));
 
         TourResult result = service.generateTour(request("TAMPERE", null, null));
 
@@ -124,7 +164,7 @@ class TourServiceTest {
     void returnsWeatherTrafficStopsAndExplanation() {
         givenTampereWithOneStop();
         when(weatherProvider.getForecast("tampere", DATE)).thenReturn(List.of(FORECAST));
-        when(trafficProvider.getAnnouncements("tampere", Language.FI)).thenReturn(List.of(ANNOUNCEMENT));
+        when(trafficProvider.getAnnouncements(eq("tampere"), eq(Language.FI), any(), any())).thenReturn(List.of(ANNOUNCEMENT));
 
         TourResult result = service.generateTour(request("tampere", Language.FI, null));
 
@@ -143,7 +183,7 @@ class TourServiceTest {
     void reportsEmptyWhenAProviderReturnsNothing() {
         givenTampereWithOneStop();
         when(weatherProvider.getForecast("tampere", DATE)).thenReturn(List.of());
-        when(trafficProvider.getAnnouncements("tampere", Language.EN)).thenReturn(List.of());
+        when(trafficProvider.getAnnouncements(eq("tampere"), eq(Language.EN), any(), any())).thenReturn(List.of());
 
         TourResult result = service.generateTour(request("tampere", null, null));
 
@@ -157,7 +197,7 @@ class TourServiceTest {
         givenTampereWithOneStop();
         when(weatherProvider.getForecast("tampere", DATE))
                 .thenThrow(new ProviderException("FMI", "down"));
-        when(trafficProvider.getAnnouncements("tampere", Language.EN)).thenReturn(List.of(ANNOUNCEMENT));
+        when(trafficProvider.getAnnouncements(eq("tampere"), eq(Language.EN), any(), any())).thenReturn(List.of(ANNOUNCEMENT));
 
         TourResult result = service.generateTour(request("tampere", null, null));
 
@@ -172,7 +212,7 @@ class TourServiceTest {
         givenTampereWithOneStop();
         when(weatherProvider.getForecast("tampere", DATE))
                 .thenThrow(new ProviderException("FMI", "down"));
-        when(trafficProvider.getAnnouncements("tampere", Language.EN))
+        when(trafficProvider.getAnnouncements(eq("tampere"), eq(Language.EN), any(), any()))
                 .thenThrow(new ProviderException("Digitraffic", "down"));
 
         TourResult result = service.generateTour(request("tampere", null, null));
@@ -187,7 +227,7 @@ class TourServiceTest {
     void plannerGetsNoDataForFactorsThatAreSwitchedOffButTheResultStillHasIt() {
         givenTampereWithOneStop();
         when(weatherProvider.getForecast("tampere", DATE)).thenReturn(List.of(FORECAST));
-        when(trafficProvider.getAnnouncements("tampere", Language.EN)).thenReturn(List.of(ANNOUNCEMENT));
+        when(trafficProvider.getAnnouncements(eq("tampere"), eq(Language.EN), any(), any())).thenReturn(List.of(ANNOUNCEMENT));
 
         TourResult result = service.generateTour(request("tampere", null, Set.of()));
 
@@ -207,7 +247,7 @@ class TourServiceTest {
     void plannerGetsOnlyTheDataOfTheEnabledFactor() {
         givenTampereWithOneStop();
         when(weatherProvider.getForecast("tampere", DATE)).thenReturn(List.of(FORECAST));
-        when(trafficProvider.getAnnouncements("tampere", Language.EN)).thenReturn(List.of(ANNOUNCEMENT));
+        when(trafficProvider.getAnnouncements(eq("tampere"), eq(Language.EN), any(), any())).thenReturn(List.of(ANNOUNCEMENT));
 
         service.generateTour(request("tampere", null, Set.of(Factor.WEATHER)));
 
@@ -223,11 +263,23 @@ class TourServiceTest {
     void passesThePlacesOfTheCityToTheStrategy() {
         givenTampereWithOneStop();
         when(weatherProvider.getForecast(eq("tampere"), any())).thenReturn(List.of());
-        when(trafficProvider.getAnnouncements(eq("tampere"), any())).thenReturn(List.of());
+        when(trafficProvider.getAnnouncements(eq("tampere"), any(), any(), any())).thenReturn(List.of());
 
         service.generateTour(request("tampere", null, null));
 
         verify(strategy).plan(eq(List.of(PLACE)), any(), any(), any());
+    }
+
+    @Test
+    void asksTrafficOnlyForTheTourWindowInPlannerTime() {
+        givenTampereWithOneStop();
+        when(weatherProvider.getForecast("tampere", DATE)).thenReturn(List.of());
+        when(trafficProvider.getAnnouncements(eq("tampere"), any(), any(), any())).thenReturn(List.of());
+
+        service.generateTour(request("tampere", null, null));
+
+        OffsetDateTime start = DATE.atTime(10, 0).atZone(ZONE).toOffsetDateTime();
+        verify(trafficProvider).getAnnouncements("tampere", Language.EN, start, start.plusHours(4));
     }
 
     @Test

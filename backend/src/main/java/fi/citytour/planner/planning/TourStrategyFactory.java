@@ -48,7 +48,9 @@ public class TourStrategyFactory {
 
     /**
      * Returns true if any forecast hour inside the tour window has precipitation
-     * above the configured threshold. Missing values do not count as rain.
+     * above the configured threshold. A forecast value at time T is the precipitation of the hour
+     * ending at T, so the hours that count are those after the start up to and including the end.
+     * Missing values do not count as rain.
      */
     private boolean isRainExpected(List<HourlyForecast> forecast, TourRequest request) {
         LocalDateTime tourStart = request.date().atTime(request.startTime());
@@ -58,7 +60,8 @@ public class TourStrategyFactory {
             // The forecast time carries an offset; convert it to the tour's local time
             LocalDateTime hourTime = hour.time().atZoneSameInstant(zone).toLocalDateTime();
 
-            if (hourTime.isBefore(tourStart) || !hourTime.isBefore(tourEnd)) {
+            // The value at time T is the rain of the hour before T, so the window is (start, end]
+            if (!hourTime.isAfter(tourStart) || hourTime.isAfter(tourEnd)) {
                 continue;   // outside the tour window
             }
             if (hour.precipitationAmount() != null && hour.precipitationAmount() > rainThresholdMm) {

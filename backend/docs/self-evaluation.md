@@ -2,27 +2,34 @@
 
 ## 1. How well have we been able to stick to our original design?
 
-Since we started discussing this project we have stayed with one approach, because the team has been communicating throughout. Our original design is still intact.
+Since we started discussing this project we have stayed with one approach, because the team has been communicating throughout. Our original design is still intact: the layers, the interfaces between them and the design patterns are the ones we planned.
 
 The one change we had to make was forced by the lack of an open API that provides tour information for all locations. We moved to storing place information in our own JSON file, and we asked our TA for approval of this change.
 
-> [Team to confirm before submission: list any other structural changes to the prototype design here, so that all changes are documented.]
+During implementation we made a few smaller changes inside the same structure:
+- `TrafficProvider` got a second method that takes the tour window (start and end), so Digitraffic announcements are filtered to the time of the tour.
+- `TourStrategyFactory.choose` takes the whole request instead of only the factors, so it can find the tour window.
+- The two strategies share one class, `NearestPlaceTourPlanner`, that builds the tour. The strategies only decide which places are candidates.
+- The values that may need tuning (rain threshold, walking speed, traffic distance and the maximum age of open-ended announcements) are in `application.yml` under `planner.planning` and are validated at startup.
+- The demo profile that we used before the adapters and strategies existed was removed.
 
 ## 2. How well have we been able to implement features based on our original plan?
 
-We have been able to implement features fairly well according to the original plan. The plan has not changed so far, so nothing has needed to be dropped or reworked.
+We have been able to implement the backend according to the plan. The following is implemented and was checked against the live FMI and Digitraffic services: the FMI and Digitraffic adapters and parsers, the places repository with four cities (Tampere, Helsinki, Vaasa and Oulu), the facade, the controller with structured error responses, both tour strategies and the factory, and a unit test suite. A failing provider gives an `UNAVAILABLE` status and the tour is still produced.
 
-> [Update before submission with what is actually implemented at the tagged commit.]
+Not done: the caching Proxy, which stays a planned improvement, and the connection of the React frontend to the backend (the frontend still uses sample data in the response format of the backend).
+
+Known limits: FMI forecasts only about two days ahead; Digitraffic text is mostly Finnish and is shown as it is; when rain is expected and no indoor place fits the duration, the tour is empty and the explanation says why; only the Tampere places come from VisitTampere, the other cities were curated by hand and have English links only.
 
 ## 3. How does our design correspond to quality?
 
-Given what we have been presented with in the course, we believe we are using the right approaches and the correct patterns: Adapter, Facade and Proxy (with Strategy for stop selection).
+Given what we have been presented with in the course, we believe we are using the right approaches and the correct patterns: Adapter for FMI and Digitraffic, Facade for `TourService`, and Strategy with a Factory Method for the stop selection. We also use a layered architecture, MVC (React as the view) and Dependency Inversion through interfaces. A caching Proxy is planned but not built.
 
 We think this lets us reach better quality than building the application from simple classes. This matters especially because external APIs can fail, and we have already seen this happen. Our design handles a failing provider explicitly instead of letting the whole request fail.
 
 ## 4. What changes do we anticipate to implement the remaining features?
 
-We expect to make a few changes here and there inside the Strategy part of the design, where the stop-selection logic is still being worked out.
+The remaining work is to connect the frontend to the backend, and to add the caching Proxy around the providers so that switching the planning mode or the language does not call FMI and Digitraffic again. Two product questions are still open: what the traffic factor should do beyond skipping places near an active announcement, and whether a rainy tour with no fitting indoor place should fall back to the general strategy (today it is empty and the explanation says that only indoor places were considered).
 
 ## 5. Individual tasks accomplished or changed per group member
 
@@ -36,7 +43,10 @@ We expect to make a few changes here and there inside the Strategy part of the d
   - the REST controller (/api/cities, /api/places, /api/tour) and structured error handling.
 - I implemented JsonPlaceRepository and the seed places.json.
 - I wrote the API contract, sample responses, PlantUML diagrams and the components and responsibilities document. The frontend and the other backend parts can build against them.
-- I added a demo profile that swaps the stub adapters and strategy for fixed output so the backend can be smoke-tested before those parts are finished.
+- Before the adapters and strategies existed, I added a temporary demo profile that replaced them with fixed output, so the backend could be smoke-tested and the response shape shown. I removed it once those parts were implemented.
+- I reviewed the adapter and strategy branches against the design and the API contract, ran them against the live APIs, and fixed the integration problems: the rain window now matches the hourly precipitation, the FMI request includes the hour before midnight, and open-ended announcements older than a set age no longer block places.
+- I added unit tests for the models, the repository, `TourService`, the controller with its error codes and the HTTP client, and added Helsinki, Vaasa and Oulu to `places.json`.
+- I added the configuration and testing documents and updated the API contract, the diagrams and the components document for the final code.
 
 ### Thanh
 - Created user interface prototypes in Figma (Option 1), consisting of: the planning screen, the loading screen, the results screen with data layer toggles, the results screen with one layer disabled, and the screen showing no traffic information.
@@ -55,30 +65,18 @@ We expect to make a few changes here and there inside the Strategy part of the d
   - The prototype was made with the help of Qwen AI coder to speed up the prototype implementation process.
 - Reviewed, discussed and agreed on Varun's proposed design patterns and the overall repository structure for the project.
 - Responsible for the tour generation logic and the factory and strategy pattern implementation. Specifically:
-  - Reviewed and agreed on the implementation of the `TourStrategy` (interface), `GeneralTourStrategy`, `IndoorTourStrategy` and `TourStrategyFactory` classes (where the whole tour generation logic, factory and strategy must be implemented).
-  - Strategy pattern: `GeneralTourStrategy` and `IndoorTourStrategy` have a common interface `TourStrategy` with `plan()` and `explanation()` methods, where:
-    - `plan()` is meant to select the places that fit into the duration the user chose, using each place's visit time, and to return them as an ordered list of stops. Each stop is a place with a start and an end time. It is still a stub and the logic needs to be implemented.
-    - `explanation()` returns a message explaining why a tour plan is chosen. It is still a stub and the logic needs to be implemented.
-  - Factory pattern: in the `TourStrategyFactory` class, the `choose()` method is responsible for choosing between a tour strategy (general or indoor) based on 2 conditions (weather and expected rain). `IndoorTourStrategy` is returned only if the weather factor is enabled and rain is expected, otherwise `GeneralTourStrategy` is returned.
-  - `IndoorTourStrategy` is meant to pick indoor places first and add outdoor places only if time remains, while `GeneralTourStrategy` can use both indoor and outdoor places.
+  - Strategy pattern: `GeneralTourStrategy` and `IndoorTourStrategy` implement the common interface `TourStrategy` with `plan()` and `explanation()`. `GeneralTourStrategy` offers all places, `IndoorTourStrategy` only indoor places. Both hand the tour building to `NearestPlaceTourPlanner` and return their own explanation text in English and Finnish.
+  - `NearestPlaceTourPlanner` picks the first stop with a seeded random generator (the same request gives the same tour), then always the nearest place that still fits before the end of the tour. Walking time comes from the straight-line distance and a configurable speed. A place is skipped for a visit that overlaps a traffic announcement near it.
+  - Factory pattern: `TourStrategyFactory.choose()` returns `IndoorTourStrategy` only if the weather factor is enabled and rain above the threshold is expected during the tour window (the hours after the start up to and including the end, in the planner time zone). Missing values do not count as rain. Otherwise it returns `GeneralTourStrategy`.
+  - The rain threshold, walking speed and traffic distance are set in `application.yml` and validated at startup.
   - Main flow: `TourService` asks the factory which strategy fits the forecast and the factors the user enabled. It then calls that strategy to select and sort the stops, and builds the final result from those stops, the explanation, the forecast and the traffic announcements. The forecast and announcements are always included in the result, whichever factors the user enabled.
-  - Implemented the `TourStrategyFactory`'s `choose` method and created a separate (private) method `isRainExpected` that checks the hourly forecast and returns true if any hour has precipitation above the 0.5 mm threshold, otherwise false (I chose 0.5 mm for precipitation as the point where rain becomes noticeable. It is a constant and it might be changed later).
   - Reason for design pattern choice: Strategy is chosen so we can make separate classes for every rule (and add new possible rules) without touching `TourService`. Factory keeps the decision logic (if/else) out of `TourService`, in a separate class that chooses which strategy to use.
-- Planned implementation idea for `GeneralTourStrategy`:
-  - create `endOfTour` that calculates tour starting time + tour duration
-  - add a 15 minute break (constant `VISIT_BREAK`) after a visit to a place is finished
-  - look through the places from `places.json` in order with a for loop
-  - for each place (stop), calculate the current time of the tour + the current place's visit duration + the visit break (`currentTime + visitMinutes + VISIT_BREAK`)
-  - add an if statement checking whether there is room to add a place (stop) or not (checks that `currentTime + visitMinutes + VISIT_BREAK <= tour deadline`)
-  - if the tour deadline is surpassed, the loop continues checking the next places from `places.json` in order and stops only after checking the last place (this might be changed later to stop when the tour's remaining time is less than the minimum visit duration (const `MIN_VISIT_DURATION`), so the loop doesn't need to go on for no reason)
-  - NOTE: when (and how) to add breaks between stops is yet to be decided and the constant value might be changed later. The idea described is still a draft.
+  - Wrote unit tests for the factory, the planner, both strategies and the planning settings.
 - AI usage note: AI was used on the text of my evaluation to fix grammar and typo mistakes and to rephrase some sentences so they make more sense.
 
 ### Abdullah
-- Examined the FMI weather adapter and Digitraffic traffic adapter, including their provider interfaces and intended responsibilities.
-- Reviewed how the adapters are designed to communicate with external APIs through the shared ApiHttpClient.
-- Tested the backend API using GET /api/cities and POST /api/tour with the demo profile.
-- Verified that the demo endpoint returns the expected tour response, including stops, weather information, traffic announcements, and status fields.
-- Reviewed the current implementation and identified that the FMI and Digitraffic adapters are still placeholders and do not yet retrieve real external data.
-
-> [Where any member's contribution differs from the prototype submission, explain the difference here.]
+- Implemented `FmiWeatherAdapter` and `FmiForecastParser`. They request one local day (and the hour before it, for the precipitation difference) from the FMI WFS service and parse the XML. NaN values beyond the forecast horizon give an empty result, an FMI error report gives a `ProviderException`, missing values stay `null`, and the cumulative precipitation of FMI is converted to hourly amounts.
+- Implemented `DigitrafficAdapter` and `DigitrafficAnnouncementParser`. They read the nationwide announcements, keep those of the selected municipality and the tour window, choose the language variant and convert the geometry.
+- Both adapters use the shared `ApiHttpClient` and report failures as `ProviderException`, so `TourService` can set `UNAVAILABLE`.
+- Wrote unit tests for the adapters and parsers, and live tests that call the real APIs.
+- Added temporary test endpoints for checking the adapters by hand, and removed them after the review.

@@ -34,7 +34,10 @@ Response `200`:
 
 ```json
 [
-  { "id": "tampere", "name": "Tampere" }
+  { "id": "tampere", "name": "Tampere" },
+  { "id": "helsinki", "name": "Helsinki" },
+  { "id": "vaasa", "name": "Vaasa" },
+  { "id": "oulu", "name": "Oulu" }
 ]
 ```
 
@@ -103,7 +106,7 @@ Response `200`: a list of places, with text already in the requested language.
 | Field | Required | Type | Meaning |
 |---|---|---|---|
 | `city` | yes | string, not blank | City `id` from `/api/cities` |
-| `date` | yes | string `YYYY-MM-DD` | Date of the tour |
+| `date` | yes | string `YYYY-MM-DD` | Date of the tour. Today or later (in Finnish time); an earlier date is rejected with `VALIDATION_FAILED` / `PAST` |
 | `startTime` | yes | string `HH:mm` | Local start time |
 | `durationHours` | yes | integer 1 to 12 | Length of the tour in hours (the form offers 2, 4 and 6) |
 | `language` | no | `"en"` or `"fi"` | Language of the response text. Default `"en"` |
@@ -111,8 +114,10 @@ Response `200`: a list of places, with text already in the requested language.
 
 Notes:
 - `language` is lowercase; `factors` values are **uppercase and case-sensitive**.
-- `factors` controls only what the planner uses. Weather and traffic are returned whatever it contains.
-- FMI forecasts only about two days ahead. For a later date the forecast is empty (`weatherStatus: "EMPTY"`), and the weather chart needs an empty state.
+- `factors` controls only what the planner uses. Weather and traffic are returned whatever it contains. With `WEATHER`, the planner uses only indoor places when rain is expected during the tour. With `TRAFFIC`, it skips a place for a visit that overlaps an announcement within a set distance of the place.
+- The same `city`, `date`, `startTime` and `durationHours` give the same tour. `language` and `factors` are not part of that choice, so switching them does not reshuffle the first stop.
+- FMI forecasts only about two days ahead. For a later date the request is still accepted and the tour is planned without weather: the forecast is empty (`weatherStatus: "EMPTY"`), and the weather chart needs an empty state. The UI may limit its date picker to the forecast range, but the backend does not require it.
+- Traffic announcements are the ones published now that overlap the tour window, so for a date far ahead they show what is active today.
 
 ### Response `200`
 
@@ -178,13 +183,13 @@ Top-level fields:
 |---|---|---|
 | `language` | `"en"` or `"fi"` | Language of the text in this response |
 | `factors` | list of strings | The factors the planner used |
-| `stops` | list of Stop | Ordered stops of the tour. **Empty until stop selection is implemented** |
-| `forecast` | list of Forecast | Hourly forecast for the requested date. Empty if unavailable, and **empty until the FMI adapter is implemented** |
-| `announcements` | list of Announcement | Active road traffic announcements in the city. **Empty until the Digitraffic adapter is implemented** |
+| `stops` | list of Stop | Ordered stops of the tour. Empty when no place fits, for example when rain is expected and no indoor place fits the duration. The `explanation` still says why |
+| `forecast` | list of Forecast | Hourly forecast for the requested date. Empty when the date is beyond the forecast range (`EMPTY`) or the provider failed (`UNAVAILABLE`) |
+| `announcements` | list of Announcement | Road traffic announcements in the city that overlap the tour window. Empty when there are none or the provider failed |
 | `weatherStatus` | Status | Outcome of getting the weather |
 | `trafficStatus` | Status | Outcome of getting the traffic announcements |
 | `trafficTextLanguage` | string or `null` | Language of the announcement text. `null` when there are no announcements |
-| `explanation` | string | Text for the "Why this tour" box, in `language`. May be empty for now |
+| `explanation` | string | Text for the "Why this tour" box, in `language`. Says whether indoor places only were used (rain expected) or both indoor and outdoor places |
 
 **Status** (`weatherStatus`, `trafficStatus`):
 
@@ -207,7 +212,7 @@ Top-level fields:
 |---|---|---|
 | `time` | string, ISO 8601 with offset | The hour the values apply to, in Finnish time |
 | `temperature` | number or `null` | Air temperature, °C |
-| `precipitationAmount` | number or `null` | Forecast precipitation amount. **There is no rain probability** in the data |
+| `precipitationAmount` | number or `null` | Precipitation in millimetres during the hour ending at `time`. **There is no rain probability** in the data |
 | `cloudCover` | number or `null` | Cloud cover, percent |
 | `wind` | number or `null` | Wind speed, m/s |
 
@@ -222,7 +227,7 @@ Any forecast value can be `null`.
 | `area` | string | Municipality |
 | `language` | string | Language of `type` and `description`, such as `"fi"` |
 | `startTime` | string (UTC, ends in `Z`) or `null` | When the situation starts |
-| `endTime` | string (UTC) or `null` | When it ends. Often `null` |
+| `endTime` | string (UTC) or `null` | When it ends. Often `null`, meaning the announcement is ongoing until Digitraffic updates it. The planner ignores an announcement with no end time that started more than `planner.planning.max-open-ended-age-days` before the tour; it is still returned here |
 | `geometry.paths` | list of lists of `{lat, lon}` | Shape on the map. Draw each inner list as one line. A single point is a path with one coordinate |
 
 The announcement text is mostly Finnish whatever `language` was requested. The UI can use `trafficTextLanguage` to tell the user.
@@ -250,7 +255,7 @@ Every error has the same shape. The backend sends **codes only**, never sentence
 
 | Status | `code` | When | `errors` |
 |---|---|---|---|
-| `400` | `VALIDATION_FAILED` | A required field is missing or a value is out of range | One entry per field. Codes: `REQUIRED`, `MIN`, `MAX` |
+| `400` | `VALIDATION_FAILED` | A required field is missing, a value is out of range, or the `date` is before today | One entry per field. Codes: `REQUIRED`, `MIN`, `MAX`, and `PAST` (for `date`) |
 | `400` | `UNSUPPORTED_LANGUAGE` | `language` is not `en` or `fi` (body or query) | `field: "language"`, `code: "UNSUPPORTED"` |
 | `400` | `MALFORMED_REQUEST` | The body is not valid JSON, a date or time has the wrong format, or a factor is unknown | Empty |
 | `404` | `CITY_NOT_FOUND` | `city` is not one returned by `/api/cities` | `field: "city"`, `code: "UNKNOWN"` |

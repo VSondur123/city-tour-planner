@@ -8,6 +8,7 @@ import fi.citytour.planner.model.tour.DataStatus;
 import fi.citytour.planner.model.tour.Factor;
 import fi.citytour.planner.model.tour.TourResult;
 import fi.citytour.planner.service.CityNotFoundException;
+import fi.citytour.planner.service.PastDateException;
 import fi.citytour.planner.service.TourService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,6 +137,17 @@ class TourControllerTest {
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.code").value("CITY_NOT_FOUND"))
                 .andExpect(jsonPath("$.errors[0].field").value("city"));
+    }
+
+    @Test
+    void answers400ForADateInThePast() throws Exception {
+        when(tourService.generateTour(any())).thenThrow(new PastDateException());
+
+        postTour(VALID_BODY)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.errors[0].field").value("date"))
+                .andExpect(jsonPath("$.errors[0].code").value("PAST"));
     }
 
     @Test

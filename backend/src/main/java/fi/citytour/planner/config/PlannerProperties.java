@@ -75,6 +75,13 @@ public class PlannerProperties {
         /** Distance in metres within which a traffic announcement affects a place. */
         @Positive
         private double trafficDistanceMeters = 200.0;
+
+        /**
+         * Days after which an announcement without an end time no longer blocks a place, counted
+         * from its start to the start of the tour. Digitraffic keeps forgotten notices "ongoing".
+         */
+        @Positive
+        private int maxOpenEndedAgeDays = 30;
     }
 
     /** Groups the configuration of every external provider. */

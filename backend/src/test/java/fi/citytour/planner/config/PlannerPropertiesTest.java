@@ -38,6 +38,7 @@ class PlannerPropertiesTest {
         assertThat(planning.getRainThresholdMm()).isEqualTo(0.5);
         assertThat(planning.getWalkingSpeedKmh()).isEqualTo(5.0);
         assertThat(planning.getTrafficDistanceMeters()).isEqualTo(200.0);
+        assertThat(planning.getMaxOpenEndedAgeDays()).isEqualTo(30);
     }
 
     @Test
@@ -69,5 +70,11 @@ class PlannerPropertiesTest {
                 .containsExactly("planning.trafficDistanceMeters");
         assertThat(invalidFields(validate(planning -> planning.setTrafficDistanceMeters(-5))))
                 .containsExactly("planning.trafficDistanceMeters");
+    }
+
+    @Test
+    void anAgeLimitOfZeroOrLessIsRejected() {
+        assertThat(invalidFields(validate(planning -> planning.setMaxOpenEndedAgeDays(0))))
+                .containsExactly("planning.maxOpenEndedAgeDays");
     }
 }

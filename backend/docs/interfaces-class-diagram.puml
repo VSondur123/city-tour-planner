@@ -18,7 +18,7 @@ interface WeatherProvider {
   +getForecast(city, date): List<HourlyForecast>
 }
 interface TrafficProvider {
-  +getAnnouncements(city, language): List<TrafficAnnouncement>
+  +getAnnouncements(city, language, windowStart, windowEnd): List<TrafficAnnouncement>
 }
 interface PlaceRepository {
   +findCities(): List<City>
@@ -38,8 +38,15 @@ class ProviderException
 class JsonPlaceRepository
 class IndoorTourStrategy
 class GeneralTourStrategy
+class NearestPlaceTourPlanner {
+  +plan(candidates, request, announcements): List<Stop>
+}
+class PlannerProperties {
+  zone
+  planning : rainThresholdMm, walkingSpeedKmh,\ntrafficDistanceMeters, maxOpenEndedAgeDays
+}
 class TourStrategyFactory <<Factory Method>> {
-  +choose(forecast, factors): TourStrategy
+  +choose(forecast, request): TourStrategy
 }
 
 class City {
@@ -134,6 +141,11 @@ TrafficProvider <|.. DigitrafficAdapter
 PlaceRepository <|.. JsonPlaceRepository
 TourStrategy <|.. IndoorTourStrategy
 TourStrategy <|.. GeneralTourStrategy
+GeneralTourStrategy --> NearestPlaceTourPlanner
+IndoorTourStrategy --> NearestPlaceTourPlanner
+NearestPlaceTourPlanner --> PlannerProperties
+TourStrategyFactory --> PlannerProperties
+TourService --> PlannerProperties
 
 TourService ..> TourRequest
 TourService ..> TourResult
@@ -157,8 +169,6 @@ Place --> LocalizedText
 TourService ..> PlaceView : maps Place to PlaceView
 
 note bottom of TourResult
-  Field names are proposed,
-  pending team agreement.
   'factors' controls what the planner uses;
   weather and traffic are always fetched and returned.
 end note

@@ -47,8 +47,10 @@ public class FmiWeatherAdapter implements WeatherProvider {
         ZonedDateTime localStart = date.atStartOfDay(zone);
         ZonedDateTime localEnd = date.plusDays(1).atStartOfDay(zone);
 
+        // One hour before midnight, so the first hour of the day has a previous row for the
+        // precipitation difference (the parser drops that extra row again)
         String startUtc = DateTimeFormatter.ISO_INSTANT.format(
-                localStart.toInstant().truncatedTo(ChronoUnit.SECONDS)
+                localStart.minusHours(1).toInstant().truncatedTo(ChronoUnit.SECONDS)
         );
         String endUtc = DateTimeFormatter.ISO_INSTANT.format(
                 localEnd.toInstant().truncatedTo(ChronoUnit.SECONDS)

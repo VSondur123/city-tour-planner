@@ -3,6 +3,7 @@ package fi.citytour.planner.controller;
 import fi.citytour.planner.controller.ApiError.FieldIssue;
 import fi.citytour.planner.model.common.UnsupportedLanguageException;
 import fi.citytour.planner.service.CityNotFoundException;
+import fi.citytour.planner.service.PastDateException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -22,6 +23,13 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiError> handleCityNotFound() {
         return error(HttpStatus.NOT_FOUND, "CITY_NOT_FOUND",
                 new FieldIssue("city", "UNKNOWN"));
+    }
+
+    /** Tour date before today: 400 {@code VALIDATION_FAILED} on {@code date}. */
+    @ExceptionHandler(PastDateException.class)
+    public ResponseEntity<ApiError> handlePastDate() {
+        return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED",
+                new FieldIssue("date", "PAST"));
     }
 
     /** Unsupported language in a query parameter: 400 {@code UNSUPPORTED_LANGUAGE}. */

@@ -43,13 +43,13 @@ class TourStrategyFactoryTest {
     }
 
     @Test
-    void rainExactlyAtTheStartOfTheTourCounts() {
-        assertThat(choose(List.of(hour("2026-11-23T10:00:00Z", 2.0)), BOTH)).isSameAs(indoor);
+    void rainOfTheHourEndingAtTheStartOfTheTourDoesNotCount() {
+        assertThat(choose(List.of(hour("2026-11-23T10:00:00Z", 2.0)), BOTH)).isSameAs(general);
     }
 
     @Test
-    void rainExactlyAtTheEndOfTheTourDoesNotCount() {
-        assertThat(choose(List.of(hour("2026-11-23T12:00:00Z", 2.0)), BOTH)).isSameAs(general);
+    void rainOfTheLastHourOfTheTourCounts() {
+        assertThat(choose(List.of(hour("2026-11-23T12:00:00Z", 2.0)), BOTH)).isSameAs(indoor);
     }
 
     @Test
@@ -58,10 +58,15 @@ class TourStrategyFactoryTest {
     }
 
     @Test
+    void rainAfterTheTourDoesNotCount() {
+        assertThat(choose(List.of(hour("2026-11-23T13:00:00Z", 2.0)), BOTH)).isSameAs(general);
+    }
+
+    @Test
     void oneRainyHourIsEnoughEvenIfTheOtherHoursAreDry() {
         List<HourlyForecast> forecast = List.of(
-                hour("2026-11-23T10:00:00Z", 0.0),
-                hour("2026-11-23T11:00:00Z", 1.5));
+                hour("2026-11-23T11:00:00Z", 0.0),
+                hour("2026-11-23T12:00:00Z", 1.5));
 
         assertThat(choose(forecast, BOTH)).isSameAs(indoor);
     }

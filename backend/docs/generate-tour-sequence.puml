@@ -33,7 +33,8 @@ else FMI fails
   note right of S : weatherStatus = UNAVAILABLE\nrest of the tour continues
 end
 
-S -> T : getAnnouncements(city, language)
+note right of S : Tour window = date + start time\n+ duration, in the planner time zone
+S -> T : getAnnouncements(city, language,\nwindowStart, windowEnd)
 alt Digitraffic available
   T --> S : List<TrafficAnnouncement>\n(AVAILABLE, or EMPTY if none)
 else Digitraffic fails
@@ -44,7 +45,7 @@ end
 S -> P : findByCity(city)
 P --> S : List<Place>
 
-S -> F : choose(forecast, factors)
+S -> F : choose(forecast, request)
 F --> S : TourStrategy
 S -> St : plan(places, request, forecast, announcements)
 St --> S : List<Stop>

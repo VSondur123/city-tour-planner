@@ -103,6 +103,9 @@ class FmiWeatherAdapterTest {
                 .containsKey("starttime")
                 .containsKey("endtime");
         assertThat(params.get("starttime")).endsWith("Z");
+        // Local midnight is 22:00Z the day before (UTC+2 in November); the request starts one hour earlier
+        assertThat(params.get("starttime")).isEqualTo("2026-11-15T21:00:00Z");
+        assertThat(params.get("endtime")).isEqualTo("2026-11-16T22:00:00Z");
         assertThat(params.get("endtime")).endsWith("Z");
     }
 
