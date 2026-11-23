@@ -1,37 +1,128 @@
-export default function TrafficPanel({ announcements, error }) {
+
+function formatDateTime(value) {
+  if (!value) return null
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) return null
+
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Helsinki',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+export default function TrafficPanel({
+  announcements = [],
+  error = false,
+}) {
   if (error) {
     return (
-      <div role="alert" className="rounded-xl border border-amber-700 bg-amber-50 p-4">
-        <strong>Digitraffic road announcements are unavailable.</strong> Showing the tour without traffic information.
+      <div
+        role="alert"
+        className="rounded-xl border border-amber-300 bg-amber-50 p-4"
+      >
+        <strong className="text-amber-900">
+          Traffic information is unavailable.
+        </strong>
+
+        <p className="mt-1 text-sm text-amber-800">
+          The tour was generated without traffic
+          information because Digitraffic could not
+          be reached or its response could not be read.
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border border-slate-300 bg-white p-5">
-      <h2 className="mb-3 text-lg font-bold">Road traffic announcements</h2>
+    <section className="rounded-xl border border-slate-300 bg-white p-5">
+      <h2 className="mb-2 text-lg font-bold">
+        Road traffic announcements
+      </h2>
+
+      <p className="mb-4 text-sm text-slate-600">
+        {announcements.length} announcement(s) found
+        for this tour.
+      </p>
+
       {announcements.length === 0 ? (
-        <p className="text-sm text-slate-600">No announcements for this area.</p>
+        <p className="rounded-lg bg-slate-50 p-4 text-sm text-slate-600">
+          No traffic announcements for this area
+          and time period.
+        </p>
       ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-slate-600">
-              <th className="py-1">Type</th>
-              <th className="py-1">Description</th>
-              <th className="py-1">Area</th>
-            </tr>
-          </thead>
-          <tbody>
-            {announcements.map((a) => (
-              <tr key={a.id} className="border-t border-slate-300">
-                <td className="py-2">{a.type}</td>
-                <td>{a.description}</td>
-                <td>{a.area}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="space-y-4">
+          {announcements.map((item, index) => (
+            <article
+              key={`${item.type}-${item.startTime}-${index}`}
+              className="rounded-lg border border-slate-200 p-4"
+            >
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
+                  Traffic notice {index + 1}
+                </span>
+
+                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                  {item.language?.toUpperCase() ?? 'Unknown language'}
+                </span>
+              </div>
+
+              <h3 className="font-bold text-slate-800">
+                {item.type}
+              </h3>
+
+              <p className="mt-2 text-sm text-slate-700">
+                {item.description}
+              </p>
+
+              <dl className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                <div>
+                  <dt className="font-semibold text-slate-600">
+                    Area
+                  </dt>
+                  <dd className="text-slate-800">
+                    {item.area || 'Unknown'}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt className="font-semibold text-slate-600">
+                    Status
+                  </dt>
+                  <dd className="text-slate-800">
+                    {item.endTime == null
+                      ? 'No scheduled end time'
+                      : 'Scheduled end available'}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt className="font-semibold text-slate-600">
+                    Start
+                  </dt>
+                  <dd className="text-slate-800">
+                    {formatDateTime(item.startTime) ?? 'Unknown'}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt className="font-semibold text-slate-600">
+                    End
+                  </dt>
+                  <dd className="text-slate-800">
+                    {formatDateTime(item.endTime) ?? 'Not specified'}
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          ))}
+        </div>
       )}
-    </div>
+    </section>
   )
 }
