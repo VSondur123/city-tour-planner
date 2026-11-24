@@ -10,6 +10,7 @@ import {
   useMap,
 } from 'react-leaflet'
 import L from 'leaflet'
+import { Minus, Plus } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 import { getTranslations } from '../i18n/translations'
 
@@ -119,24 +120,9 @@ function MapButtons() {
   const map = useMap()
 
   return (
-    <div className="absolute left-4 top-4 z-[450] flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
-      <button
-        type="button"
-        aria-label="Zoom in"
-        className="h-10 w-10 border-b border-slate-100 text-2xl text-slate-700 hover:bg-slate-50"
-        onClick={() => map.zoomIn()}
-      >
-        +
-      </button>
-
-      <button
-        type="button"
-        aria-label="Zoom out"
-        className="h-10 w-10 text-2xl text-slate-700 hover:bg-slate-50"
-        onClick={() => map.zoomOut()}
-      >
-        −
-      </button>
+    <div className="ct-map-controls">
+      <button type="button" aria-label="Zoom in" onClick={() => map.zoomIn()}><Plus size={18} /></button>
+      <button type="button" aria-label="Zoom out" onClick={() => map.zoomOut()}><Minus size={18} /></button>
     </div>
   )
 }
@@ -335,32 +321,11 @@ export default function MapView({
         )}
       </MapContainer>
 
-      <div className="pointer-events-none absolute bottom-4 left-4 z-[450] max-w-[calc(100%-2rem)] rounded-xl border border-white/70 bg-white/95 px-3 py-2 text-[11px] shadow-lg backdrop-blur-md">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-slate-700">
-          <span className="flex items-center gap-2">
-            <i className="h-2.5 w-2.5 rounded-full bg-teal-700" />
-            {t.mapStopsLegend}
-          </span>
-
-          <span className="flex items-center gap-2">
-            <i className="w-6 border-t-2 border-dashed border-teal-700" />
-            {t.mapOrderLegend}
-          </span>
-
-          {showAllPlaces && (
-            <span className="flex items-center gap-2">
-              <i className="h-2.5 w-2.5 rounded-full bg-teal-500" />
-              {t.mapAllPlacesLegend}
-            </span>
-          )}
-
-          {!!traffic.length && (
-            <span className="flex items-center gap-2">
-              <i className="w-6 border-t-[3px] border-amber-700" />
-              {t.mapTrafficLegend}
-            </span>
-          )}
-        </div>
+      <div className="ct-map-legend">
+        <span><i className="ct-legend-dot" />{t.mapStopsLegend}</span>
+        <span><i className="ct-legend-dash" />{t.mapOrderLegend}</span>
+        {showAllPlaces && <span><i className="ct-legend-dot ct-legend-dot-light" />{t.mapAllPlacesLegend}</span>}
+        {!!traffic.length && <span><i className="ct-legend-line" />{t.mapTrafficLegend}</span>}
       </div>
     </div>
   )
