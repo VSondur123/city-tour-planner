@@ -1,5 +1,13 @@
 export const translations = {
   en: {
+    allPlacesTitle: 'All places in the city', allPlacesDescription: 'Explore the full catalogue. Tour stops are marked separately.',
+    showAllOnMap: 'Show all places on map', placesLoading: 'Loading places...', placesLoadFailed: 'Could not load places',
+    placesEmpty: 'No places found for this city.', searchPlaces: 'Search places', searchPlaceholder: 'Search by name',
+    filterCategory: 'Category', allCategories: 'All categories', noMatchingPlaces: 'No matching places.',
+    placesShown: (shown, total) => `Showing ${shown} of ${total} places`, inYourTour: 'In your tour', coordinates: 'Coordinates',
+    mapAllPlacesLegend: 'Other places', mapTrafficPointLegend: 'Traffic point notices',
+    apiFields: { city: 'City', date: 'Date', startTime: 'Start time', durationHours: 'Duration', language: 'Language', factors: 'Planning factors' },
+    apiValidation: { REQUIRED: 'Required', MIN: 'Value is too small', MAX: 'Value is too large', PAST: 'Date is in the past' },
     appTitle: 'City Tour Planner', settingsTitle: 'Tour settings', city: 'City', date: 'Date', startTime: 'Start time', duration: 'Duration', hours: 'h',
     loadingCities: 'Loading cities...', noCities: 'No cities available', failedCities: 'Failed to load cities',
     buildingTour: 'Building your tour...', generateTour: 'Generate tour',
@@ -29,6 +37,14 @@ export const translations = {
     trafficLanguage: 'Traffic announcements are provided in language:', sourceLanguageNotice: 'Announcement texts are shown in the language provided by Digitraffic.',
   },
   fi: {
+    allPlacesTitle: 'Kaikki kaupungin kohteet', allPlacesDescription: 'Tutustu kaikkiin kohteisiin. Kierroksen kohteet on merkitty erikseen.',
+    showAllOnMap: 'Näytä kaikki kohteet kartalla', placesLoading: 'Ladataan kohteita...', placesLoadFailed: 'Kohteiden lataaminen epäonnistui',
+    placesEmpty: 'Tästä kaupungista ei löytynyt kohteita.', searchPlaces: 'Hae kohteita', searchPlaceholder: 'Hae nimellä',
+    filterCategory: 'Luokka', allCategories: 'Kaikki luokat', noMatchingPlaces: 'Ei hakua vastaavia kohteita.',
+    placesShown: (shown, total) => `Näytetään ${shown}/${total} kohdetta`, inYourTour: 'Kierroksellasi', coordinates: 'Koordinaatit',
+    mapAllPlacesLegend: 'Muut kohteet', mapTrafficPointLegend: 'Liikennetiedotteiden pisteet',
+    apiFields: { city: 'Kaupunki', date: 'Päivämäärä', startTime: 'Aloitusaika', durationHours: 'Kesto', language: 'Kieli', factors: 'Suunnittelutekijät' },
+    apiValidation: { REQUIRED: 'Pakollinen tieto', MIN: 'Arvo on liian pieni', MAX: 'Arvo on liian suuri', PAST: 'Päivämäärä on menneisyydessä' },
     appTitle: 'Kaupunkikierroksen suunnittelija', settingsTitle: 'Kierroksen asetukset', city: 'Kaupunki', date: 'Päivämäärä', startTime: 'Aloitusaika', duration: 'Kesto', hours: 't',
     loadingCities: 'Ladataan kaupunkeja...', noCities: 'Kaupunkeja ei ole saatavilla', failedCities: 'Kaupunkien lataaminen epäonnistui',
     buildingTour: 'Suunnitellaan kierrosta...', generateTour: 'Luo kierros',
