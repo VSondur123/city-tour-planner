@@ -2,61 +2,25 @@ import { useEffect, useState } from 'react'
 import { getCities } from '../api/tourApi'
 import { getTranslations } from '../i18n/translations'
 
-const DURATIONS = [2, 4, 6]
-function todayIso() {
-  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Helsinki', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
-  const value = (type) => parts.find((part) => part.type === type)?.value
-  return `${value('year')}-${value('month')}-${value('day')}`
-}
-
-export default function PlanningForm({ onGenerate, loading, initialRequest = null, language = 'en' }) {
+function todayIso() { const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Helsinki', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); const p = (k) => parts.find(x => x.type === k)?.value; return `${p('year')}-${p('month')}-${p('day')}` }
+export default function PlanningForm({ onGenerate, loading, initialRequest = null, language = 'en', onCityChange, factors = ['WEATHER', 'TRAFFIC'], options = null }) {
   const t = getTranslations(language)
   const [cities, setCities] = useState([])
-  const [city, setCity] = useState(initialRequest?.city ?? '')
   const [citiesLoading, setCitiesLoading] = useState(true)
   const [citiesError, setCitiesError] = useState('')
+  const [city, setCity] = useState(initialRequest?.city ?? 'tampere')
   const [date, setDate] = useState(initialRequest?.date ?? todayIso())
   const [time, setTime] = useState(initialRequest?.startTime ?? '13:00')
-  const [duration, setDuration] = useState(initialRequest?.durationHours ?? 2)
-
-  useEffect(() => {
-    let active = true
-    async function loadCities() {
-      try {
-        setCitiesLoading(true)
-        setCitiesError('')
-        const result = await getCities()
-        if (!active) return
-        setCities(result)
-        setCity((previous) => previous || result[0]?.id || '')
-      } catch (error) {
-        if (active) setCitiesError(error.message)
-      } finally {
-        if (active) setCitiesLoading(false)
-      }
-    }
-    loadCities()
-    return () => { active = false }
-  }, [])
-
-  function handleSubmit(event) {
-    event.preventDefault()
-    if (!city || citiesLoading || loading) return
-    onGenerate({ city, date, startTime: time, durationHours: duration, language: initialRequest?.language ?? 'en', factors: initialRequest?.factors ?? ['WEATHER', 'TRAFFIC'] })
-  }
-  const field = 'h-12 rounded-lg border border-slate-400 bg-white px-3 text-base'
-  return <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-slate-300 bg-white p-8">
-    <h2 className="text-xl font-bold">{t.settingsTitle}</h2>
-    <div className="flex flex-col gap-2"><label htmlFor="city" className="font-bold">{t.city}</label><select id="city" value={city} onChange={(e) => setCity(e.target.value)} disabled={citiesLoading || Boolean(citiesError)} className={field}>
-      {citiesLoading && <option value="">{t.loadingCities}</option>}
-      {!citiesLoading && cities.length === 0 && <option value="">{t.noCities}</option>}
-      {cities.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-    </select>{citiesError && <p role="alert" className="text-sm text-red-700">{t.failedCities}: {citiesError}</p>}</div>
-    <div className="flex flex-wrap gap-4">
-      <div className="flex flex-1 flex-col gap-2"><label htmlFor="date" className="font-bold">{t.date}</label><input id="date" type="date" min={todayIso()} value={date} onChange={(e) => setDate(e.target.value)} required className={field} /></div>
-      <div className="flex flex-1 flex-col gap-2"><label htmlFor="time" className="font-bold">{t.startTime}</label><input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required className={field} /></div>
-    </div>
-    <fieldset><legend className="mb-2 font-bold">{t.duration}</legend><div className="flex gap-3">{DURATIONS.map((hours) => <label key={hours} className={`flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border ${duration === hours ? 'border-2 border-teal-700 bg-teal-50 font-bold' : 'border-slate-400'}`}><input type="radio" name="duration" checked={duration === hours} onChange={() => setDuration(hours)} className="accent-teal-700" />{hours} {t.hours}</label>)}</div></fieldset>
-    <button type="submit" disabled={loading || citiesLoading || !city} className="w-full rounded-xl bg-teal-700 py-3 text-lg font-bold text-white hover:bg-teal-800 disabled:opacity-60">{loading ? t.buildingTour : t.generateTour}</button>
+  const [duration, setDuration] = useState(initialRequest?.durationHours ?? 4)
+  useEffect(() => { let active = true; getCities().then(result => { if (!active) return; const list = Array.isArray(result) ? result : []; setCities(list); setCitiesLoading(false); setCity(prev => list.some(x => x.id === prev) ? prev : (list[0]?.id ?? '')) }).catch(error => { if (active) { setCitiesError(error.message); setCitiesLoading(false) } }); return () => { active = false } }, [])
+  useEffect(() => { onCityChange?.(city) }, [city, onCityChange])
+  function submit(event) { event.preventDefault(); if (loading || citiesLoading || !city) return; onGenerate({ city, date, startTime: time, durationHours: duration, language, factors }) }
+  return <form className="planning-form" onSubmit={submit}>
+    <p className="planning-intro">{language === 'fi' ? 'Valitse kaupunki ja ajankohta. Luo oma kierroksesi sää- ja liikennetietojen avulla.' : 'Set your preferences and generate an optimized tour with places, weather and traffic.'}</p>
+    <div className="planning-field"><label htmlFor="city-choice">⌖ &nbsp; {t.city}</label><select id="city-choice" value={city} disabled={citiesLoading || !!citiesError} onChange={e => setCity(e.target.value)}>{citiesLoading && <option value="">{t.loadingCities}</option>}{!citiesLoading && cities.length === 0 && <option value="">{t.noCities}</option>}{cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>{citiesError && <p className="field-error" role="alert">{t.failedCities}: {citiesError}</p>}</div>
+    <div className="planning-two"><div className="planning-field"><label htmlFor="tour-date">▦ &nbsp; {t.date}</label><input id="tour-date" type="date" required min={todayIso()} value={date} onChange={e => setDate(e.target.value)} /></div><div className="planning-field"><label htmlFor="tour-time">◷ &nbsp; {t.startTime}</label><input id="tour-time" type="time" required value={time} onChange={e => setTime(e.target.value)} /></div></div>
+    <div className="planning-field"><label htmlFor="tour-duration">◴ &nbsp; {language === 'fi' ? 'Kierroksen kesto' : 'Tour duration'}</label><select id="tour-duration" value={duration} onChange={e => setDuration(Number(e.target.value))}>{[2, 4, 6].map(v => <option key={v} value={v}>{v} {language === 'fi' ? 'tuntia' : 'hours'}</option>)}</select></div>
+    {options}
+    <button type="submit" className="generate-button" disabled={loading || citiesLoading || !city}>✦ &nbsp; {loading ? t.buildingTour : t.generateTour}</button>
   </form>
 }
