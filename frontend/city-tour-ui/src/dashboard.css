@@ -245,7 +245,7 @@
 /* ---------- Places panel ---------- */
 .ct-places-panel { position: absolute; z-index: 20; bottom: var(--ct-gap); left: calc(var(--ct-left) + var(--ct-left-width) + var(--ct-gap)); right: calc(var(--ct-gap) + var(--ct-right-width) + var(--ct-gap)); display: flex; flex-direction: column; height: 300px; overflow: hidden; border: 1px solid var(--ct-line); border-radius: 20px; background: #fff; box-shadow: var(--ct-shadow); }
 .ct-places-closed { height: 52px; }
-.ct-places-handle { position: absolute; z-index: 2; top: 0; left: 50%; display: grid; place-items: center; width: 46px; height: 18px; transform: translateX(-50%); border: 0; border-radius: 0 0 10px 10px; background: #fff; color: var(--ct-muted); }
+.ct-places-handle { position: absolute; z-index: 2; top: 0; left: 50%; display: grid; place-items: center; width: 100px; height: 40px; transform: translateX(-50%); border: 1px solid var(--ct-field); border-radius: 0 0 10px 10px; background: #fff; color: var(--ct-teal); }
 .ct-collapsed-title { display: flex; align-items: center; gap: 8px; height: 100%; padding: 10px 20px; border: 0; background: #fff; color: var(--ct-ink); font-size: 14px; font-weight: 700; text-align: left; }
 .places-layout { display: flex; flex-direction: column; height: 100%; min-height: 0; }
 .places-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 20px 12px; }
@@ -370,3 +370,90 @@
 }
 
 
+
+/* =========================================
+   ALL PLACES - COMPACT HEIGHT & AUTO COLLAPSE
+   ========================================= */
+
+@media (min-width: 901px) {
+
+  /* Normal expanded height */
+  .ct-places-panel:not(.ct-places-closed) {
+    height: 320px !important;
+    max-height: calc(100% - 28px);
+    transition: height 0.25s ease;
+  }
+
+  /* Slightly taller when filters are expanded */
+  .ct-places-panel:not(.ct-places-closed):has(.places-filters) {
+    height: 350px !important;
+  }
+
+  /* Collapsed panel: only the title bar */
+  .ct-places-panel.ct-places-closed {
+    height: 52px !important;
+    min-height: 52px !important;
+    transition: height 0.25s ease;
+  }
+
+  .places-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .places-toolbar,
+  .places-filters {
+    flex-shrink: 0;
+  }
+
+  /* Keep scrolling when there are many places */
+  .place-cards-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 12px 18px 18px;
+    scrollbar-width: thin;
+    scrollbar-color: #a9c9c3 transparent;
+  }
+
+  .place-cards {
+    display: grid !important;
+    grid-template-columns:
+      repeat(auto-fill, minmax(175px, 1fr));
+    gap: 14px;
+    width: 100%;
+    height: auto !important;
+    align-content: start;
+  }
+
+  .place-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 215px;
+  }
+
+  .place-cover {
+    height: 105px;
+  }
+}
+
+/* Tablet and mobile keep their natural layout */
+@media (max-width: 900px) {
+  .ct-places-panel:not(.ct-places-closed) {
+    height: auto !important;
+    max-height: none;
+  }
+
+  .ct-places-panel.ct-places-closed {
+    height: 52px !important;
+    min-height: 52px !important;
+  }
+
+  .place-cards-scroll {
+    overflow: visible;
+  }
+}

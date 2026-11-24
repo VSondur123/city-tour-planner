@@ -105,7 +105,14 @@ export default function App() {
     } finally { if (id === requestId.current) setLoading(false) }
   }
   function resetTour() { requestId.current += 1; setLoading(false); setPreferredLanguage(tourRequest?.language ?? preferredLanguage); setPreferredFactors(tourRequest?.factors ?? preferredFactors); setTourRequest(null); setTour(null); setError(''); setMobilePlanning(true) }
-  function explorePlace(place) { setSelectedPlace(place); setShowAllPlaces(true) }
+function explorePlace(place) {
+
+  setSelectedPlace({ ...place });
+
+  setShowAllPlaces(true);
+
+  setPlacesOpen(false);
+}
   const forecast = tour?.weather ?? []
   const previewHours = forecast.filter(x => x.temp != null).slice(0, 4)
   const firstThree = tour?.announcements?.slice(0, 3) ?? []
