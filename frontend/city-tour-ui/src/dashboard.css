@@ -72,9 +72,74 @@
 .ct-panel { position: absolute; z-index: 20; top: var(--ct-gap); bottom: var(--ct-gap); display: flex; flex-direction: column; min-height: 0; overflow: hidden; border: 1px solid var(--ct-line); border-radius: 20px; background: #fff; box-shadow: var(--ct-shadow); }
 .ct-left-panel { left: var(--ct-left); width: var(--ct-left-width); }
 .ct-right-panel { right: var(--ct-gap); width: var(--ct-right-width); }
-.ct-panel.ct-closed { bottom: auto; width: 90px; height: 76px; }
+/* Collapsed controls: equal-sized floating buttons on desktop. */
+.ct-panel.ct-closed {
+  bottom: auto;
+  width: 88px;
+  height: 60px;
+  border-radius: 16px;
+}
 .ct-closed .ct-panel-heading h2 { display: none; }
 .ct-closed .ct-right-tabs > button:not(.ct-right-collapse) { display: none; }
+
+/* Left: one small icon and one comfortably-sized reopen button. */
+.ct-left-panel.ct-closed .ct-panel-top {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  padding: 9px;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+}
+.ct-left-panel.ct-closed .ct-panel-heading {
+  display: flex;
+  flex: 0 0 26px;
+  justify-content: center;
+  gap: 0;
+}
+.ct-left-panel.ct-closed .ct-accent-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 32px;
+}
+.ct-left-panel.ct-closed .ct-panel-collapse {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-color: transparent;
+  background: var(--ct-teal-soft);
+  border-radius: 11px;
+}
+
+/* Right: center the reopen button in exactly the same outer card. */
+.ct-right-panel.ct-closed .ct-right-tabs {
+  flex: 0 0 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  gap: 0;
+  border: 0;
+}
+.ct-right-panel.ct-closed .ct-right-collapse {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 11px;
+  background: var(--ct-teal-soft);
+}
+.ct-panel.ct-closed .ct-panel-collapse:hover,
+.ct-panel.ct-closed .ct-right-collapse:hover {
+  background: #d5eee8;
+}
 .ct-panel-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 20px 22px 8px; }
 .ct-panel-heading { display: flex; align-items: center; gap: 10px; }
 .ct-panel-heading h2 { margin: 0; font-size: 19px; font-weight: 800; letter-spacing: -0.3px; }
@@ -251,8 +316,22 @@
   .ct-left-panel { order: 1; }
   .ct-right-panel { order: 2; }
   .ct-places-panel { order: 3; min-height: 280px; }
-  .ct-panel.ct-closed { width: 100%; height: 56px; }
+  .ct-panel.ct-closed { width: 100%; height: 56px; border-radius: 16px; }
   .ct-closed .ct-panel-heading h2 { display: block; }
+  .ct-left-panel.ct-closed .ct-panel-top {
+    flex: none;
+    width: 100%;
+    height: 56px;
+    padding: 9px 16px;
+    justify-content: space-between;
+  }
+  .ct-left-panel.ct-closed .ct-panel-heading { flex: 1; justify-content: flex-start; gap: 10px; }
+  .ct-left-panel.ct-closed .ct-accent-icon { width: auto; height: auto; }
+  .ct-right-panel.ct-closed .ct-right-tabs {
+    justify-content: flex-end;
+    height: 56px;
+    padding: 0 12px;
+  }
   .ct-places-panel.ct-places-closed { height: 52px; min-height: 52px; }
   .ct-left-content, .ct-right-content { overflow: visible; }
   .ct-selected-place { position: relative; order: 1; top: auto; left: auto; width: 100%; transform: none; }
@@ -289,3 +368,5 @@
   .ct-stop-thumb { display: none; }
   .planning-two { grid-template-columns: 1fr; }
 }
+
+
