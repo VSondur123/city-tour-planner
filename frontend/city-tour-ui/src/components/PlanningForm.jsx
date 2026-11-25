@@ -1,73 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Calendar, Clock, MapPin, Sparkles, Timer } from 'lucide-react'
+import { getCities } from '../api/tourApi'
+import { getTranslations } from '../i18n/translations'
 
-// Cities are examples. In the real app the list should come from the cities
-// that the places provider actually covers (see the design document, section 2.3).
-const CITIES = ['Helsinki', 'Espoo', 'Vantaa']
-const DURATIONS = [2, 4, 6]
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10)
-}
-
-export default function PlanningForm({ onGenerate, loading }) {
-  const [city, setCity] = useState(CITIES[0])
-  const [date, setDate] = useState(todayIso())
-  const [time, setTime] = useState('13:00')
-  const [duration, setDuration] = useState(2)
-
-  function handleSubmit(e) {
-    e.preventDefault()
-    onGenerate({ city, date, time, duration })
-  }
-
-  const field = 'h-12 rounded-lg border border-slate-400 bg-white px-3 text-base'
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-slate-300 bg-white p-8">
-      <h2 className="text-xl font-bold">Tour settings</h2>
-
-      <div className="flex flex-col gap-2">
-        <label htmlFor="city" className="font-bold">City</label>
-        <select id="city" value={city} onChange={(e) => setCity(e.target.value)} className={field}>
-          {CITIES.map((c) => <option key={c}>{c}</option>)}
-        </select>
-      </div>
-
-      <div className="flex flex-wrap gap-4">
-        <div className="flex flex-1 flex-col gap-2">
-          <label htmlFor="date" className="font-bold">Date</label>
-          <input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className={field} />
-        </div>
-        <div className="flex flex-1 flex-col gap-2">
-          <label htmlFor="time" className="font-bold">Start time</label>
-          <input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className={field} />
-        </div>
-      </div>
-
-      <fieldset>
-        <legend className="mb-2 font-bold">Duration</legend>
-        <div className="flex gap-3">
-          {DURATIONS.map((d) => (
-            <label
-              key={d}
-              className={`flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border ${
-                duration === d ? 'border-2 border-teal-700 bg-teal-50 font-bold' : 'border-slate-400'
-              }`}
-            >
-              <input type="radio" name="duration" checked={duration === d} onChange={() => setDuration(d)} className="accent-teal-700" />
-              {d} h
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="h-13 w-full rounded-xl bg-teal-700 py-3 text-lg font-bold text-white hover:bg-teal-800 disabled:opacity-60"
-      >
-        {loading ? 'Building your tour...' : 'Generate tour'}
-      </button>
-    </form>
-  )
+function todayIso() { const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Helsinki', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()); const p = (k) => parts.find(x => x.type === k)?.value; return `${p('year')}-${p('month')}-${p('day')}` }
+export default function PlanningForm({ onGenerate, loading, initialRequest = null, language = 'en', onCityChange, factors = ['WEATHER', 'TRAFFIC'], options = null }) {
+  const t = getTranslations(language)
+  const [cities, setCities] = useState([])
+  const [citiesLoading, setCitiesLoading] = useState(true)
+  const [citiesError, setCitiesError] = useState('')
+  const [city, setCity] = useState(initialRequest?.city ?? 'tampere')
+  const [date, setDate] = useState(initialRequest?.date ?? todayIso())
+  const [time, setTime] = useState(initialRequest?.startTime ?? '13:00')
+  const [duration, setDuration] = useState(initialRequest?.durationHours ?? 4)
+  useEffect(() => { let active = true; getCities().then(result => { if (!active) return; const list = Array.isArray(result) ? result : []; setCities(list); setCitiesLoading(false); setCity(prev => list.some(x => x.id === prev) ? prev : (list[0]?.id ?? '')) }).catch(error => { if (active) { setCitiesError(error.message); setCitiesLoading(false) } }); return () => { active = false } }, [])
+  useEffect(() => { onCityChange?.(city) }, [city, onCityChange])
+  function submit(event) { event.preventDefault(); if (loading || citiesLoading || !city) return; onGenerate({ city, date, startTime: time, durationHours: duration, language, factors }) }
+  return <form className="planning-form" onSubmit={submit}>
+    <p className="planning-intro">{language === 'fi' ? 'Valitse kaupunki ja ajankohta. Luo oma kierroksesi sää- ja liikennetietojen avulla.' : 'Set your preferences and generate an optimized tour with places, weather and traffic.'}</p>
+    <div className="planning-field"><label htmlFor="city-choice"><MapPin size={15} aria-hidden="true" />{t.city}</label><select id="city-choice" value={city} disabled={citiesLoading || !!citiesError} onChange={e => setCity(e.target.value)}>{citiesLoading && <option value="">{t.loadingCities}</option>}{!citiesLoading && cities.length === 0 && <option value="">{t.noCities}</option>}{cities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select>{citiesError && <p className="field-error" role="alert">{t.failedCities}: {citiesError}</p>}</div>
+    <div className="planning-two"><div className="planning-field"><label htmlFor="tour-date"><Calendar size={15} aria-hidden="true" />{t.date}</label><input id="tour-date" type="date" required min={todayIso()} value={date} onChange={e => setDate(e.target.value)} /></div><div className="planning-field"><label htmlFor="tour-time"><Clock size={15} aria-hidden="true" />{t.startTime}</label><input id="tour-time" type="time" required value={time} onChange={e => setTime(e.target.value)} /></div></div>
+    <div className="planning-field"><label htmlFor="tour-duration"><Timer size={15} aria-hidden="true" />{language === 'fi' ? 'Kierroksen kesto' : 'Tour duration'}</label><select id="tour-duration" value={duration} onChange={e => setDuration(Number(e.target.value))}>{[2, 4, 6].map(v => <option key={v} value={v}>{v} {language === 'fi' ? 'tuntia' : 'hours'}</option>)}</select></div>
+    {options}
+    <button type="submit" className="generate-button" disabled={loading || citiesLoading || !city}><Sparkles size={18} aria-hidden="true" />{loading ? t.buildingTour : t.generateTour}</button>
+  </form>
 }
