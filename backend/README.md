@@ -9,10 +9,23 @@ How to run the backend.
 - **Internet connection.** Maven downloads dependencies on the first build, and the service calls FMI and Digitraffic.
 - Port **8080** must be free.
 
-If `mvn -version` shows a Java version other than 22, point `JAVA_HOME` at a JDK 22 first. On macOS:
+If `mvn -version` shows a Java version other than 22, point `JAVA_HOME` at a JDK 22 first.
 
+**macOS / Linux:**
 ```bash
 export JAVA_HOME=$(/usr/libexec/java_home -v 22)
+```
+
+**Windows (Command Prompt / cmd):**
+```cmd
+set JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-22.x"
+set PATH=%JAVA_HOME%\bin;%PATH%
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-22.x"
+$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"
 ```
 
 ## Run
@@ -37,7 +50,11 @@ The backend has started when the log shows `Started CityTourPlannerApplication`.
 In a second terminal:
 
 ```bash
+# macOS / Linux / Git Bash
 curl http://localhost:8080/api/cities
+
+# Windows PowerShell
+Invoke-RestMethod http://localhost:8080/api/cities
 ```
 
 Expected output:

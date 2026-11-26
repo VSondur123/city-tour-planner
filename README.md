@@ -223,6 +223,8 @@ cd backend
 mvn spring-boot:run
 ```
 
+*(On Windows, ensure Java 22 is active in your terminal, e.g. `set JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-22.x"` in Command Prompt or `$env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-22.x"` in PowerShell).*
+
 The backend starts at:
 
 ```text
@@ -232,7 +234,11 @@ http://localhost:8080
 Verify the API:
 
 ```bash
+# macOS / Linux / Git Bash
 curl http://localhost:8080/api/cities
+
+# Windows PowerShell
+Invoke-RestMethod http://localhost:8080/api/cities
 ```
 
 Expected cities:
@@ -408,13 +414,12 @@ All members participated in design discussions and integration decisions.
 
 ## Documentation
 
-- Final design document: `submission/City_Tour_Planner_Final_Design_Document.pdf` (final submission)
+- Final design document: `submission/City_Tour_Planner_Final_Design_Document.pdf` (contains architecture, design patterns, testing strategy, and self-evaluation)
 - Backend documentation: `backend/docs/`
 - API contract: `backend/docs/api-contract.md`
+- Configuration details: `backend/docs/configuration.md`
 - Backend instructions: `backend/README.md`
 - Frontend instructions: `frontend/city-tour-ui/README.md`
-- Backend testing: `backend/docs/testing.md`
-- Self-evaluation: `backend/docs/self-evaluation.md`
 
 ## Course
 
