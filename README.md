@@ -1,115 +1,255 @@
+
 # City Tour Planner
 
 ## Overview
 
-City Tour Planner is a software design course project that generates a simple city tour by combining data from multiple independent external sources.
+City Tour Planner is a web application developed for the COMP.SE.110 Software Design course at Tampere University.
 
-Users select a city, date, start time and duration. The system retrieves weather, traffic and places data, then produces a basic itinerary. Results are shown on a map together with weather charts and traffic information.
+The application generates personalized city tours by combining weather forecasts, road traffic announcements, and a curated catalogue of places of interest.
 
-## Objectives
+Users can select a city, date, start time, duration, language, and planning factors. The backend generates an itinerary containing ordered stops, estimated visit times, weather forecasts, traffic announcements, and an explanation of the planning decisions.
 
-- Retrieve data from multiple independent external sources.
-- Combine the retrieved data in a meaningful way.
-- Generate a basic itinerary based on the available information.
-- Present the results through visualizations (map, weather chart, traffic panel, stop list).
-- Design the system so that additional data sources can be integrated later.
+The frontend provides an interactive map-first interface for planning and exploring city tours.
 
-## Current Scope
+## Project Objectives
 
-- City and date/time selection (currently focused on Tampere).
-- Weather forecasts via **FMI Open Data**.
-- Traffic / disruption information via **Digitraffic**.
-- Places of interest stored in a local JSON file (Visit Tampere data, bilingual en/fi).
-- Tour generation that can take weather and traffic into account (strategy still under development).
-- Visualization: interactive map (Leaflet), weather chart (Recharts), traffic panel and stop list.
+- Retrieve information from multiple independent data sources.
+- Combine weather, traffic, and place information to generate meaningful tours.
+- Apply weather- and traffic-aware planning rules.
+- Display tour results through an interactive map and visual components.
+- Handle external API failures without stopping the entire application.
+- Support English and Finnish.
+- Maintain an extensible architecture using software design patterns.
 
-## Data Sources
+## Implemented Features
 
-| Source | Purpose | Status |
-|--------|---------|--------|
-| **FMI Open Data** | Weather forecasts & observations | Implemented (`FmiWeatherAdapter` + `FmiForecastParser`) |
-| **Digitraffic** | Traffic announcements / disruptions | Implemented (`DigitrafficAdapter` + `DigitrafficAnnouncementParser`) |
-| **Local JSON** (`places.json`) | Museums, landmarks and other points of interest | Implemented (Visit Tampere data) |
+### Tour Planning
 
-Open city data catalogues were investigated; a local repository was chosen because no suitable open API covering all required places was found.
+- City selection: Tampere, Helsinki, Vaasa, and Oulu.
+- Date and start time selection.
+- Tour duration selection (2, 4, or 6 hours in the UI).
+- English and Finnish language support.
+- Optional WEATHER and TRAFFIC planning factors.
+- Automatic generation of ordered tour stops.
+- Estimated visit times and walking-time calculations.
 
-## Architecture & Design Patterns
+The backend API supports tour durations from 1 to 12 hours.
 
-- **Backend**: Spring Boot (Java 22)
-  - `TourController` – HTTP boundary
-  - `TourService` – Facade that orchestrates providers and handles partial failure
-  - `WeatherProvider` / `TrafficProvider` – Adapter interfaces (FMI & Digitraffic)
-  - `PlaceRepository` – JSON-based repository
-  - `TourStrategy` + `TourStrategyFactory` – Strategy pattern for stop selection
-- **Frontend**: React + Vite + Tailwind CSS + Leaflet + Recharts
-  - Pure view layer; no business logic
-  - Currently uses mock data; ready to call the backend API
+### Interactive Map
 
-Design documentation (class diagrams, sequence diagrams, API contract, component responsibilities) lives in `backend/docs/`.
+- OpenStreetMap tiles rendered using Leaflet.
+- Numbered markers for selected tour stops.
+- Lines showing the suggested visit order.
+- Traffic announcement markers and geometries.
+- Additional place markers.
+- Map zooming and place selection.
+- Collapsible planning and tour details panels.
+
+The lines connecting tour stops represent visit order, not actual pedestrian routing paths.
+
+### Places Catalogue
+
+- Retrieve places using `GET /api/places`.
+- Display places for the selected city.
+- Search places by name.
+- Filter places by category and indoor/outdoor status.
+- Display place information and external links.
+- Select a place to focus the map on its location.
+
+### Weather Information
+
+- Hourly weather forecasts from the Finnish Meteorological Institute (FMI).
+- Temperature and precipitation visualization.
+- Additional wind speed and cloud cover information.
+- Handling of empty or unavailable weather data.
+
+### Traffic Information
+
+- Road traffic announcements from Digitraffic.
+- Traffic descriptions, areas, and available timestamps.
+- Traffic geometries displayed on the map where coordinates exist.
+- Handling of missing or unavailable traffic information.
+
+Traffic announcement text may remain in Finnish because it is provided by the external source.
+
+### User Interface
+
+- Responsive React interface.
+- Map-first dashboard layout.
+- Collapsible side panels and places panel.
+- English and Finnish interface localization.
+- Loading indicators and error messages.
+- Empty states for missing data.
+- Independent visualization layer controls.
 
 ## Technology Stack
 
-| Layer | Technology |
-|-------|------------|
-| Backend | Java 22, Spring Boot, Maven |
-| Frontend | React 19, Vite, Tailwind CSS 4, Leaflet, Recharts |
-| External APIs | FMI Open Data, Digitraffic |
-| Places data | Local JSON file |
+| Layer | Technology | Purpose |
+|---|---|---|
+| Backend | Java 22 | Application implementation |
+| Framework | Spring Boot 3.5.6 | REST API and application services |
+| Build tool | Maven 3.9+ | Backend compilation and tests |
+| Frontend | React 19 | User interface |
+| Frontend tooling | Vite 8 | Development server and production build |
+| Styling | Tailwind CSS 4 and custom CSS | Responsive interface |
+| Mapping | Leaflet and React Leaflet | Interactive maps |
+| Charts | Recharts | Weather visualization |
+| Icons | Lucide React | Interface icons |
+| Weather | FMI Open Data | Weather forecasts |
+| Traffic | Digitraffic | Road traffic announcements |
+| Places | Local JSON repository | Curated attractions |
 
-## Project Structure
+## Supported Cities
 
-```
-.
-├── backend/                  # Spring Boot application
-│   ├── docs/                 # Design docs, API contract, samples, self-evaluation
-│   ├── src/main/java/...     # Controllers, services, adapters, models, repository
-│   ├── src/main/resources/
-│   │   └── data/places.json
-│   └── README.md             # Backend run instructions
-└── frontend/
-    └── city-tour-ui/         # React + Vite application
-        ├── src/
-        │   ├── components/   # PlanningForm, MapView, WeatherChart, …
-        │   └── data/         # mockTour.js (temporary)
-        └── README.md
-```
+- Tampere
+- Helsinki
+- Vaasa
+- Oulu
 
-## Running the Application
+The places catalogue currently contains 23 places across these four cities.
+
+## Architecture and Design Patterns
+
+The application follows a layered architecture.
 
 ### Backend
 
-Requirements: **Java 22**, **Maven 3.9+**, free port **8080**.
+The backend separates HTTP handling, business logic, data access, and external API integration.
+
+Main components:
+
+- `TourController`: Handles REST API requests and validation.
+- `TourService`: Coordinates tour generation and external data retrieval.
+- `WeatherProvider`: Interface for weather data.
+- `TrafficProvider`: Interface for traffic information.
+- `PlaceRepository`: Interface for accessing places.
+- `TourStrategyFactory`: Selects the appropriate planning strategy.
+- `GeneralTourStrategy`: Considers all eligible places.
+- `IndoorTourStrategy`: Considers indoor places when rain is expected.
+- `NearestPlaceTourPlanner`: Creates ordered tours and estimates travel times.
+
+### Design Patterns
+
+| Pattern | Implementation | Purpose |
+|---|---|---|
+| Facade | `TourService` | Centralizes tour generation |
+| Adapter | FMI and Digitraffic adapters | Integrates external APIs |
+| Strategy | Tour planning strategies | Supports different planning rules |
+| Factory Method | `TourStrategyFactory` | Selects the planning strategy |
+
+A caching Proxy was considered but has not been implemented.
+
+### Frontend
+
+The frontend is responsible for:
+
+- Collecting user input.
+- Sending requests to the backend.
+- Transforming API responses for presentation.
+- Displaying maps, weather, traffic, and places.
+- Managing language selection and visualization state.
+- Handling API errors and unavailable information.
+
+Tour planning decisions remain in the backend.
+
+## Project Structure
+
+```text
+city-tour-planner/
+├── README.md
+├── backend/
+│   ├── README.md
+│   ├── pom.xml
+│   ├── docs/
+│   │   ├── api-contract.md
+│   │   ├── components-and-responsibilities.md
+│   │   ├── configuration.md
+│   │   ├── testing.md
+│   │   ├── self-evaluation.md
+│   │   └── samples/
+│   └── src/
+│       ├── main/
+│       │   ├── java/
+│       │   └── resources/
+│       │       └── data/places.json
+│       └── test/
+├── frontend/
+│   └── city-tour-ui/
+│       ├── README.md
+│       ├── package.json
+│       ├── vite.config.js
+│       └── src/
+│           ├── api/
+│           ├── components/
+│           ├── i18n/
+│           ├── App.jsx
+│           ├── dashboard.css
+│           └── main.jsx
+├── api-research-runner/
+└── submission/
+```
+
+## Requirements
+
+### Backend
+
+- Java JDK 22
+- Maven 3.9 or newer
+- Internet connection
+- Available port 8080
+
+### Frontend
+
+- Node.js 22.12 or newer recommended
+- npm
+- Modern web browser
+- Available port 5173
+
+## Installation and Running
+
+Clone the repository:
+
+```bash
+git clone https://github.com/VSondur123/city-tour-planner.git
+cd city-tour-planner
+```
+
+### 1. Start the Backend
+
+Open a terminal in the project root:
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-Or build a jar:
+The backend starts at:
 
-```bash
-mvn clean package -DskipTests
-java -jar target/city-tour-planner-backend-0.0.1-SNAPSHOT.jar
+```text
+http://localhost:8080
 ```
 
-Smoke test:
+Verify the API:
 
 ```bash
 curl http://localhost:8080/api/cities
-# → [{"id":"tampere","name":"Tampere"},{"id":"helsinki","name":"Helsinki"},{"id":"vaasa","name":"Vaasa"},{"id":"oulu","name":"Oulu"}]
 ```
 
-Plan a tour (FMI forecasts reach about two days ahead, so use a date within the next two days):
+Expected cities:
+
+```text
+Tampere, Helsinki, Vaasa, Oulu
+```
+
+To run backend unit tests:
 
 ```bash
-curl -X POST http://localhost:8080/api/tour \
-  -H "Content-Type: application/json" \
-  -d '{"city":"tampere","date":"<YYYY-MM-DD>","startTime":"13:00","durationHours":4,"language":"en","factors":["WEATHER","TRAFFIC"]}'
+mvn test
 ```
 
-See `backend/README.md` and `backend/docs/api-contract.md` for full details.
+### 2. Start the Frontend
 
-### Frontend
+Open a second terminal from the project root:
 
 ```bash
 cd frontend/city-tour-ui
@@ -117,47 +257,166 @@ npm install
 npm run dev
 ```
 
-Opens at `http://localhost:5173`.  
-The UI currently uses mock data; it is prepared to call the backend (`CORS` already allows `http://localhost:5173`).
+Open:
 
-## API Overview
+```text
+http://localhost:5173
+```
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| GET | `/api/cities` | List available cities |
-| GET | `/api/places?city=…&language=…` | Places of a city |
-| POST | `/api/tour` | Generate a tour |
+Both the backend and frontend must be running to use the complete application.
 
-Full contract: `backend/docs/api-contract.md`.
+Vite forwards requests beginning with `/api` to the backend at `http://localhost:8080`.
+
+### 3. Build the Frontend
+
+From `frontend/city-tour-ui`:
+
+```bash
+npm run lint
+npm run build
+```
+
+Production build files are generated in `dist/`.
+
+To preview the build:
+
+```bash
+npm run preview
+```
+
+The development proxy is configured for Vite's development server. A separate deployment may require additional API proxy configuration.
+
+## REST API
+
+The backend provides three endpoints:
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/cities` | Retrieve supported cities |
+| GET | `/api/places` | Retrieve places by city and language |
+| POST | `/api/tour` | Generate a city tour |
+
+Example request:
+
+```http
+POST /api/tour
+Content-Type: application/json
+```
+
+```json
+{
+  "city": "tampere",
+  "date": "2026-11-26",
+  "startTime": "13:00",
+  "durationHours": 4,
+  "language": "en",
+  "factors": ["WEATHER", "TRAFFIC"]
+}
+```
+
+The date must be today or later in the configured Finnish time zone.
+
+The response contains:
+
+- `stops`
+- `forecast`
+- `announcements`
+- `weatherStatus`
+- `trafficStatus`
+- `trafficTextLanguage`
+- `language`
+- `factors`
+- `explanation`
+
+For detailed request/response specifications, see:
+
+`backend/docs/api-contract.md`
+
+## Testing
+
+### Backend Tests
+
+Run:
+
+```bash
+cd backend
+mvn test
+```
+
+The backend includes tests for:
+
+- Models and validation.
+- REST controllers.
+- External API adapters and parsers.
+- Tour generation.
+- Weather and traffic planning rules.
+- Repository and HTTP client behavior.
+- Failure handling.
+
+Optional live integration tests:
+
+```bash
+mvn test -Dtest='*LiveTest'
+```
+
+Live tests depend on FMI, Digitraffic, and network availability.
+
+### Frontend Validation
+
+From `frontend/city-tour-ui`:
+
+```bash
+npm run lint
+npm run build
+```
+
+Manual testing has covered:
+
+- All four supported cities.
+- Tour generation and API integration.
+- English/Finnish switching.
+- Weather and traffic planning factors.
+- Map interactions and layer toggles.
+- Places search and filtering.
+- Date validation.
+- Backend connection failures and recovery.
+- Empty or unavailable provider data.
+- Mobile, tablet, and desktop layouts.
+
+The frontend currently has no automated test suite.
+
+## Known Limitations
+
+- Weather forecasts are generally available only for approximately the next two days.
+- Digitraffic announcement text is primarily Finnish.
+- The place catalogue is curated locally rather than retrieved from a live places API.
+- Map lines between tour stops indicate visit order, not actual walking routes.
+- The backend estimates walking time using geographical distance and a configured walking speed.
+- The caching Proxy pattern is proposed but not implemented.
+- The application does not support user accounts, bookings, or payments.
 
 ## Team Responsibilities
 
-| Member | Focus |
-|--------|--------|
-| **Varun** | Architecture, design patterns, integration, repository structure |
-| **George** | Tour-generation logic and design rationale |
-| **Thanh** | User-interface prototype (Figma → React) |
-| **Abdullah** | External data adapters & parsers (FMI weather & Digitraffic), unit tests |
+| Member | Main Contribution |
+|---|---|
+| Varun Ganesh Sondur | Architecture, backend integration, REST API, shared models, repository, tests, documentation |
+| Pham Thanh | Frontend implementation, API integration, localization, map-based UI, responsive layout |
+| Georgios Malezoglou | Tour planning strategies, strategy factory, nearest-place planning, related tests |
+| Abdullah | FMI and Digitraffic adapters, parsing, external API integration, related tests |
 
-The team collaborates on API research and overall system decisions.
-
-## Project Status
-
-**Backend**
-- Skeleton is running: interfaces, models, HTTP client, facade (`TourService`), controller, places repository.
-- Weather (`FmiWeatherAdapter`) and traffic (`DigitrafficAdapter`) adapters are implemented with live API integration and dedicated parsers.
-- Tour strategies (`GeneralTourStrategy`, `IndoorTourStrategy`, `TourStrategyFactory`) are implemented; the stops are built by `NearestPlaceTourPlanner`, and the rain threshold, walking speed and traffic distance are set in `application.yml` under `planner.planning`.
-- Places are available for Tampere, Helsinki, Vaasa and Oulu.
-
-**Frontend**
-- Planning form, map (Leaflet), weather chart, traffic panel, stop list and layer toggles are implemented.
-- Currently driven by mock data; integration with the real backend API is the next step.
-
-**Known design decision**
-- Places are stored in a local JSON file rather than fetched from an external open-data API (approved by the teaching assistant).
+All members participated in design discussions and integration decisions.
 
 ## Documentation
 
-- Backend design & API: `backend/docs/`
-- Backend run instructions: `backend/README.md`
-- Frontend: `frontend/city-tour-ui/README.md` (default Vite template notes)
+- Final design document: `submission/City_Tour_Planner_Final_Design_Document.pdf` (final submission)
+- Backend documentation: `backend/docs/`
+- API contract: `backend/docs/api-contract.md`
+- Backend instructions: `backend/README.md`
+- Frontend instructions: `frontend/city-tour-ui/README.md`
+- Backend testing: `backend/docs/testing.md`
+- Self-evaluation: `backend/docs/self-evaluation.md`
+
+## Course
+
+COMP.SE.110 Software Design  
+Tampere University, Academic Year 2026–2027
