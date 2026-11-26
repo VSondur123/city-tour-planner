@@ -1,4 +1,3 @@
-
 # City Tour Planner
 
 ## Overview
@@ -84,20 +83,20 @@ Traffic announcement text may remain in Finnish because it is provided by the ex
 
 ## Technology Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Backend | Java 22 | Application implementation |
-| Framework | Spring Boot 3.5.6 | REST API and application services |
-| Build tool | Maven 3.9+ | Backend compilation and tests |
-| Frontend | React 19 | User interface |
-| Frontend tooling | Vite 8 | Development server and production build |
-| Styling | Tailwind CSS 4 and custom CSS | Responsive interface |
-| Mapping | Leaflet and React Leaflet | Interactive maps |
-| Charts | Recharts | Weather visualization |
-| Icons | Lucide React | Interface icons |
-| Weather | FMI Open Data | Weather forecasts |
-| Traffic | Digitraffic | Road traffic announcements |
-| Places | Local JSON repository | Curated attractions |
+| Layer            | Technology                    | Purpose                                 |
+| ---------------- | ----------------------------- | --------------------------------------- |
+| Backend          | Java 22                       | Application implementation              |
+| Framework        | Spring Boot 3.5.6             | REST API and application services       |
+| Build tool       | Maven 3.9+                    | Backend compilation and tests           |
+| Frontend         | React 19                      | User interface                          |
+| Frontend tooling | Vite 8                        | Development server and production build |
+| Styling          | Tailwind CSS 4 and custom CSS | Responsive interface                    |
+| Mapping          | Leaflet and React Leaflet     | Interactive maps                        |
+| Charts           | Recharts                      | Weather visualization                   |
+| Icons            | Lucide React                  | Interface icons                         |
+| Weather          | FMI Open Data                 | Weather forecasts                       |
+| Traffic          | Digitraffic                   | Road traffic announcements              |
+| Places           | Local JSON repository         | Curated attractions                     |
 
 ## Supported Cities
 
@@ -130,12 +129,12 @@ Main components:
 
 ### Design Patterns
 
-| Pattern | Implementation | Purpose |
-|---|---|---|
-| Facade | `TourService` | Centralizes tour generation |
-| Adapter | FMI and Digitraffic adapters | Integrates external APIs |
-| Strategy | Tour planning strategies | Supports different planning rules |
-| Factory Method | `TourStrategyFactory` | Selects the planning strategy |
+| Pattern        | Implementation               | Purpose                           |
+| -------------- | ---------------------------- | --------------------------------- |
+| Facade         | `TourService`              | Centralizes tour generation       |
+| Adapter        | FMI and Digitraffic adapters | Integrates external APIs          |
+| Strategy       | Tour planning strategies     | Supports different planning rules |
+| Factory Method | `TourStrategyFactory`      | Selects the planning strategy     |
 
 A caching Proxy was considered but has not been implemented.
 
@@ -164,8 +163,6 @@ city-tour-planner/
 │   │   ├── api-contract.md
 │   │   ├── components-and-responsibilities.md
 │   │   ├── configuration.md
-│   │   ├── testing.md
-│   │   ├── self-evaluation.md
 │   │   └── samples/
 │   └── src/
 │       ├── main/
@@ -296,11 +293,11 @@ The development proxy is configured for Vite's development server. A separate de
 
 The backend provides three endpoints:
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/api/cities` | Retrieve supported cities |
-| GET | `/api/places` | Retrieve places by city and language |
-| POST | `/api/tour` | Generate a city tour |
+| Method | Endpoint        | Purpose                              |
+| ------ | --------------- | ------------------------------------ |
+| GET    | `/api/cities` | Retrieve supported cities            |
+| GET    | `/api/places` | Retrieve places by city and language |
+| POST   | `/api/tour`   | Generate a city tour                 |
 
 Example request:
 
@@ -403,12 +400,12 @@ The frontend currently has no automated test suite.
 
 ## Team Responsibilities
 
-| Member | Main Contribution |
-|---|---|
+| Member              | Main Contribution                                                                            |
+| ------------------- | -------------------------------------------------------------------------------------------- |
 | Varun Ganesh Sondur | Architecture, backend integration, REST API, shared models, repository, tests, documentation |
-| Pham Thanh | Frontend implementation, API integration, localization, map-based UI, responsive layout |
-| Georgios Malezoglou | Tour planning strategies, strategy factory, nearest-place planning, related tests |
-| Abdullah | FMI and Digitraffic adapters, parsing, external API integration, related tests |
+| Pham Thanh          | Frontend implementation, API integration, localization, map-based UI, responsive layout      |
+| Georgios Malezoglou | Tour planning strategies, strategy factory, nearest-place planning, related tests            |
+| Abdullah            | FMI and Digitraffic adapters, parsing, external API integration, related tests               |
 
 All members participated in design discussions and integration decisions.
 
@@ -423,5 +420,5 @@ All members participated in design discussions and integration decisions.
 
 ## Course
 
-COMP.SE.110 Software Design  
+COMP.SE.110 Software Design
 Tampere University, Academic Year 2026–2027
