@@ -137,5 +137,3 @@ This runs the unit tests. They need no network. To check the real FMI and Digitr
 ```bash
 mvn test -Dtest='*LiveTest'
 ```
-
-What the tests cover is listed in `docs/testing.md`. The settings you can change in `src/main/resources/application.yml` are listed in `docs/configuration.md`.
